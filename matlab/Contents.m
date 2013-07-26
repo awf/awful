@@ -30,4 +30,4 @@
 % AU_LEVMARQ     Simple Levenberg-Marquardt  
 % AU_RANSAC      Simple RANSAC  
 % AU_ROSENBROCK  Rosenbrock test function  
-% AU_LOGSUMEXP   Efficient and save log(sum(exp(V)))  
+% AU_LOGSUMEXP   Efficient and safe log(sum(exp(V)))  

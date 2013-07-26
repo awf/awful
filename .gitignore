@@ -1,0 +1,4 @@
+*.mexw64
+*.asv
+*.au_bak
+au_ccode_test_mex.cpp

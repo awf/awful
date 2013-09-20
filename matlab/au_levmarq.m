@@ -267,9 +267,10 @@ if (VERBOSE >= 1) && (VERBOSE < 3)
 end
 
 %%
-function r = f1d_aux(x,func,opts)
+function e = f1d_aux(x,func,opts)
 opts.InnerIterFcn(x);
-r = sumsq(func(x));
+r = func(x);
+e = sum(r(:).^2);
 
 %%
 function r = rms(e)

@@ -23,7 +23,7 @@ if nargin == 1 && strcmp(x, 'opts')
   opts.LAMBDA_DECREASE = 2;
   opts.LAMBDA_MAX = 1e8;
   opts.LAMBDA_INCREASE_BASE = 10;
-  opts.USE_LINMIN = 1;
+  opts.USE_LINMIN = 0;
   opts.CHECK_DERIVATIVES = 1;
   
   % Function called each time f is called.
@@ -34,6 +34,9 @@ if nargin == 1 && strcmp(x, 'opts')
   % It is passed x, and may modify it before returning,
   % E.g. to re-center.
   opts.IterStartFcn = @(x) x;
+  
+  % Function called after each reduction in f,
+  opts.PlotFcn = @(x, fval) [];
   
   % Normal equations options
   opts.SCHUR_SPLIT = 0;
@@ -70,14 +73,20 @@ nparams = length(x);
 
 %% Optionally check the Jacobian
 if opts.CHECK_DERIVATIVES
-  [~,J] = func(x);
-  check_derivatives(func,x,J);
+    fprintf('checking derivatives...');
+  [~,J] = func(x + rand(size(x))*1e-4);
+  emax = check_derivatives(func,x,J);
+  fprintf(' emax = %g, norm(x) = %g\n', full(emax), norm(x));
 end
 
 if VERBOSE >= 1
   e = func(x);
   fprintf('au_levmarq: Beginning LM params %d, residuals %d, initial RMS = %g\n', ...
     nparams, numel(e), rms(e));
+
+  if ~isempty(opts.PlotFcn)
+      opts.PlotFcn(x, sumsq(e));
+  end
 
   if (VERBOSE > 1) && (VERBOSE < 2)
     fprintf('au_levmarq: ');
@@ -100,7 +109,10 @@ while true
 
   % Call user's IterStartFcn
   if ~isempty(opts.IterStartFcn)
-    x = opts.IterStartFcn(x);
+    xnew = opts.IterStartFcn(x);
+    if ~isequal(size(xnew), size(x))
+        fprintf(2, 'WARNING: IterStartFcn changed size of x.\n');
+    end
   end
   
   % Call func
@@ -212,6 +224,10 @@ while true
 
     if f_test < f
       if VERBOSE >= 2, drawnow; fprintf('Accept %g\n', f_test); end
+      if ~isempty(opts.PlotFcn)
+          opts.PlotFcn(x_test, f_test);
+      end
+      
       if lm_lambda > opts.LAMBDA_MIN
         lm_lambda = lm_lambda / opts.LAMBDA_DECREASE;
       end
@@ -277,7 +293,7 @@ function r = rms(e)
 r = sqrt(mean(e.^2));
 
 %%
-function check_derivatives(f,x,J)
+function emax = check_derivatives(f,x,J)
 delta=1e-4;
 scale = 1/2/delta;
 [n,p] = size(J);
@@ -289,6 +305,7 @@ for k=1:p
   e(k) = delta; 
   fdJ(:,k) = (f(x+e) - f(x-e))*scale;
 end
+emax = max((fdJ(:) - J(:)).^2);
 if max((fdJ(:) - J(:)).^2) > 1e-7
   error('derivatives wrong')
 end

@@ -24,6 +24,9 @@
 % AU_TEST*   Utilities for writing unit tests  
 % AU_ASSERT* Easier assertions  
 % 
+% Easier broadcasting
+%
+% AU_BSX     Cleaner interface to bsxfun
 % 
 % Optimization/Numerics
 % 

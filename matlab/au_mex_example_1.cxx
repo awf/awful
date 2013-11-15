@@ -1,11 +1,10 @@
-
 // Bare-bones example of au_mex
 
 #include "au_mex.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   mlx_inputs in(nrhs, prhs); // Wrap inputs
+   mlx_inputs  in(nrhs, prhs); // Wrap inputs
    mlx_outputs out(nlhs, plhs); // Wrap outputs
 
    mlx_cast<double> A(in[0]); // Get input 0

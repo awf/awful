@@ -51,6 +51,8 @@ struct mlx_isa {
   operator bool () const { return it_is; }
 };
 
+
+
 // ----------------------------------------------------------------------------
 
 template <class T>
@@ -305,6 +307,30 @@ struct mlx_inputs {
     }
 };
 
+// Helper class to allow
+// out[i] = x;
+// where x is an mlx_cast<> object;
+struct mlx_output {
+    mxArray** array_ptr;
+    
+    // Construct from pointer to mxArray*
+    mlx_output(mxArray** array_ptr = 0):array_ptr(array_ptr) {}
+    
+    // Assign from mlx_cast<T>
+    template <class T>
+    mlx_output& operator=(mlx_cast<T>& that) {
+        *array_ptr = const_cast<mxArray*>(that.mx_array);
+        return *this;
+    }
+    
+    // Assign from mxArray*
+    template <class T>
+    mlx_output& operator=(mxArray* that) {
+        *array_ptr = that;
+        return *this;
+    }
+};
+
 // Class to collect output arguments, and apply error checking to their
 // access.
 struct mlx_outputs {
@@ -315,37 +341,13 @@ struct mlx_outputs {
     mlx_outputs(int nlhs, mxArray * plhs[]):nlhs(nlhs), plhs(plhs)
     {
     }
-
-    // Helper class to allow
-    // out[i] = x;
-    // where x is an mlx_cast<> object;
-    struct output {
-        mxArray** array_ptr;
-        
-        output(mxArray** array_ptr = 0):array_ptr(array_ptr) {}
-        
-        // Assign from mlx_cast<T>
-        template <class T>
-        output& operator=(mlx_cast<T>& that) {
-            *array_ptr = const_cast<mxArray*>(that.mx_array);
-            return *this;
-        }
-
-        // Assign from mxArray*
-        template <class T>
-        output& operator=(mxArray* that) {
-            *array_ptr = that;
-            return *this;
-        }
-    };
-
     // Access to ith output argument, with range checking
     // Special case i==0, as one may assign to that even if nlhs==0
-    output operator[](int i)
+    mlx_output operator[](int i)
     {
         mlx_assert(i >= 0);
         if (i > 0 && i >= nlhs)
             mexErrMsgIdAndTxt("awful:nout", "Expected at least %d output arguments", i+1);
-        return output(&plhs[i]);
+        return mlx_output(&plhs[i]);
     }
 };

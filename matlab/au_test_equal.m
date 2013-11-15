@@ -29,12 +29,7 @@ else
   end
 end
 
-s = dbstack;
-if length(s) < 2
-  mfile = '[base workspace]';
-else
-  mfile = s(2).name;
-end
+mfile = au_mfilename;
 exprval1 = evalin('caller',expr1);
 exprval2 = evalin('caller',expr2);
 symbolic = mlp_issym(exprval1) || mlp_issym(exprval2);

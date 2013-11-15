@@ -1,5 +1,5 @@
 function au_test_regexp(str, regex)
-% au_TEST_REGEXP  Test that string matches regex 
+% AU_TEST_REGEXP  Test that string matches regex 
 %             au_test_regexp(sprintf('%.3f', 4), '\d+\.\d')
 
 if nargin == 0
@@ -8,9 +8,8 @@ if nargin == 0
   return
 end
 
-s = dbstack;
-mfile = s(2).name;
-hd = ['au_test_equal[' mfile ']:'];
+mfile = au_mfilename;
+hd = ['au_test_regexp[' mfile ']:'];
 
 str_to_print = regexprep(str, '\n', '\\n');
 if length(str_to_print) > 80

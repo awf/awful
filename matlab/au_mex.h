@@ -175,6 +175,9 @@ bool operator==(mlx_dims const& a, mlx_dims const& b)
 
 // ----------------------------------------------------------------------------
 
+// Pass to mlx_cast to indicate that type mismatch is non-fatal.
+static const bool mlx_cast_nothrow = false;
+
 // This is a (thankfully not too) smart pointer to an mxArray.
 template <class T>
 struct mlx_cast {
@@ -189,12 +192,16 @@ struct mlx_cast {
   // Take mxArray pointer 'a', and check that its contents
   // correspond to the template type parameter T.
   // If so, take local copies of its size and data pointer.
-  mlx_cast(mxArray const* a) 
+  mlx_cast(mxArray const* a, bool throw_on_type_mismatch = true) 
   {
     mx_array = a;
     matlab_class_id = mlx_class_id((T*)0);
     ok = (a) && (mxGetClassID(a) == matlab_class_id);
-    if (!ok) return;
+    if (!ok) 
+        if (throw_on_type_mismatch && a)
+            mexErrMsgIdAndTxt("awful:bad_cast", "Unexpected datatype [%s]", mxGetClassName(a));
+        else
+            return; // Return silently, caller can check flag;
     
     // This is the correct type, set up the data
     data = (T*)mxGetData(a);

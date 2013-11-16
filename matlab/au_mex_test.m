@@ -3,6 +3,7 @@
 
 disp('mexing');
 mex('au_mex_example_1.cxx');
+mex('au_mex_example_2.cxx');
 
 disp('testing');
 A = rand(2,3);

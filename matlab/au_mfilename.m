@@ -1,5 +1,6 @@
-function mfile = au_mfilename
+function mfile = au_mfilename(offset)
 % AU_MFILENAME  Return filename of caller, or "[base workspace]"
+%               OFFSET = -1 is caller's caller...
 
 if 0
     %% Test code -- use CTRL-ENTER to run
@@ -9,9 +10,14 @@ if 0
 
 end
 
+if nargin == 0
+    offset = 0;
+end
+
+offset = 2-offset;
 s = dbstack;
-if length(s) < 2
+if length(s) < offset
   mfile = '[base workspace]';
 else
-  mfile = s(2).name;
+  mfile = s(offset).name;
 end

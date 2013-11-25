@@ -29,7 +29,7 @@ else
   end
 end
 
-mfile = au_mfilename;
+mfile = au_mfilename(-1);
 exprval1 = evalin('caller',expr1);
 exprval2 = evalin('caller',expr2);
 symbolic = mlp_issym(exprval1) || mlp_issym(exprval2);

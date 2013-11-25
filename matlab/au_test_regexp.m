@@ -8,7 +8,7 @@ if nargin == 0
   return
 end
 
-mfile = au_mfilename;
+mfile = au_mfilename(-1);
 hd = ['au_test_regexp[' mfile ']:'];
 
 str_to_print = regexprep(str, '\n', '\\n');

@@ -29,7 +29,11 @@
 #define DECLARE_MEX_CLASS(ID, matlab_type, ctype) \
   typedef ctype mlx_ ## matlab_type; \
   inline mxClassID mlx_class_id(mlx_ ## matlab_type *) { return ID; }
-  
+ 
+/* Declares:
+typedef ... mlx_int8;  // mlx_int8 is the C++ type stored in a MATLAB int8
+mxClassID mlx_class_id(mlx_int8*);  // Return mxINT8_CLASS
+ */
 DECLARE_MEX_CLASS(mxINT8_CLASS, int8, int8_T)
 DECLARE_MEX_CLASS(mxUINT8_CLASS, uint8, uint8_T)
 DECLARE_MEX_CLASS(mxINT16_CLASS, int16, int16_T)
@@ -42,6 +46,8 @@ DECLARE_MEX_CLASS(mxSINGLE_CLASS, single, float)
 DECLARE_MEX_CLASS(mxDOUBLE_CLASS, double, double)
 DECLARE_MEX_CLASS(mxLOGICAL_CLASS, logical, bool) // ????
 
+/// Type query:
+// if (mlx_isa<mlx_single>(a)) { /* .. it's single .. */ }
 template <class T>
 struct mlx_isa {
   bool it_is;
@@ -50,8 +56,6 @@ struct mlx_isa {
   }
   operator bool () const { return it_is; }
 };
-
-
 
 // ----------------------------------------------------------------------------
 
@@ -119,10 +123,11 @@ struct mlp_pairwise_traits {
   typedef typename mlx_numeric_traits<T1>::wide_t wide1_t;
   typedef typename mlx_numeric_traits<wide1_t>::wide_t wide_t;
   
-  typedef typename mlx_numeric_traits<
-    typename mlx_numeric_traits<T2>::wide_t
-  >::wide_t wide2_t;
-  void f() { assert_equal((wide_t*)0, (wide2_t*)0); }
+  typename mlx_numeric_traits<T2>::wide2_t;
+  typedef typename mlx_numeric_traits<wide2_t>::wide_t wide_t_from2;
+
+  // Check that wide of wide is the same for both...
+  void f() { assert_equal((wide_t*)0, (wide_t_from2*)0); }
 };
 
 // ----------------------------------------------------------------------------
@@ -147,7 +152,9 @@ inline double saturating_add(double a, double b)
   return a + b;
 }
 
-// A struct to hold the mx dimensions.
+// ----------------------------------------------------------------------------
+
+// A struct to hold the matrix dimensions.
 // This does not need to take ownership of the pointer,
 // as it is guaranteed to stay alive as long as the matrix does.
 struct mlx_dims {

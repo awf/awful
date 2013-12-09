@@ -1,7 +1,8 @@
 function residual = au_autodiff_example_1(params, data)
-% Example for autodiff: Bundle residual for one term in
+% Example for autodiff: Bundle residual for one phi term in the below.
 %
-%  sum_ij || m_ij - pi(K, P_i, X_j) ||
+%   sum_ij || m_ij - phi(K, P_i, X_j) ||
+%
 
 if nargin == 0
     %% TEST CASE
@@ -10,16 +11,16 @@ if nargin == 0
     data = rand(2,1);
     
     tic
-    au_autodiff_generate(@au_autodiff_example_1, params, data, 'c:/tmp/au_autodiff_example_1.cpp');
+    au_autodiff_generate(@au_autodiff_example_1, params, data, 'c:/tmp/au_autodiff_example_1_mex.cpp');
     toc
-    disp c:/tmp/au_autodiff_example_1.cpp
-    mex -I. c:/tmp/au_autodiff_example_1.cpp
+    disp c:/tmp/au_autodiff_example_1_mex.cpp
+    mex -I. c:/tmp/au_autodiff_example_1_mex.cpp
     
     % evaluate many terms in one call
     nterms = 3;
     allparams = rand(14,nterms);
     alldata = rand(2,nterms);
-    out = au_autodiff_example_1(allparams,alldata);
+    out = au_autodiff_example_1_mex(allparams,alldata);
     for col = 1:1
         residual = out(1:2,col)
         J = reshape(out(3:end,col), 2, 14)

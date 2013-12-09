@@ -20,8 +20,11 @@ if nargin < 2
     filename = [];
 end
 
+fprintf('au_ccode: cse, ');
 cse = feval(symengine, 'generate::optimize', symobj);
+fprintf('C, ');
 c = feval(symengine, 'generate::C', cse);
+fprintf('manip...\n');
 cstring = strrep(char(c), '\n', sprintf('\n'));
 
 % Replace "t454 = " with "double t454 ="
@@ -31,11 +34,13 @@ cstring = regexprep(cstring, '\<(\w+) =', '  double $&');
 cstring = regexprep(cstring, '\<(\w+)\[(\d+)\]\[(\d+)\] =', ...
     'out_ptr[$3 * out_rows + $2] =');
 
+%% Return if not writing to file
 if isempty(filename)
     out = cstring;
     return
 end
 
+%%
 % If there's a filename, make it a mexFunction
 if ischar(filename)
     fd = fopen(filename, 'w');
@@ -50,6 +55,7 @@ GetVars = '';
 for vi = 1:nvars
     GetVars = sprintf('%s\n  double* ptr_%s = mxGetPr(prhs[%d]);', ...
         GetVars, char(vars(vi)), vi - 1);
+    fprintf('au_ccode: input var %d [%s]\n', vi, char(vars(vi)));
 end
 
 body = '  /* inner loop */';
@@ -62,7 +68,7 @@ end
 body = sprintf('%s\n%s', body, cstring);
 
 % Get Template Text
-tfd = fopen('mlp_ccode_template.cpp', 'r');
+tfd = fopen('au_ccode_template.cpp', 'r');
 template = fread(tfd, inf, 'char');
 fclose(tfd);
 

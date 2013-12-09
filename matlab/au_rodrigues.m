@@ -88,7 +88,7 @@ if nargout == 1
             Rot = au_rodrigues([w1 w2 w3]);
             au_ccode([Rot; diff(Rot,w1); diff(Rot,w2); diff(Rot,w3)])
         end
-        theta = norm(w);
+        theta = sqrt(sum(w.^2));
         n = w / theta;
         n_x = au_cross_matrix(n);
         R = eye(3) + n_x*sin(theta) + n_x*n_x*(1-cos(theta));

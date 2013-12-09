@@ -14,6 +14,8 @@ if nargin == 0
     toc
     disp c:/tmp/au_autodiff_example_1.cpp
     mex -I. c:/tmp/au_autodiff_example_1.cpp
+    out = au_autodiff_example_1(params,data);
+    J = reshape(out(3:end), 2, 14)
     return
 end
 

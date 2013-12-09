@@ -14,8 +14,16 @@ if nargin == 0
     toc
     disp c:/tmp/au_autodiff_example_1.cpp
     mex -I. c:/tmp/au_autodiff_example_1.cpp
-    out = au_autodiff_example_1(params,data);
-    J = reshape(out(3:end), 2, 14)
+    
+    % evaluate many terms in one call
+    nterms = 3;
+    allparams = rand(14,nterms);
+    alldata = rand(2,nterms);
+    out = au_autodiff_example_1(allparams,alldata);
+    for col = 1:1
+        residual = out(1:2,col)
+        J = reshape(out(3:end,col), 2, 14)
+    end
     return
 end
 

@@ -1,0 +1,94 @@
+<h2>AWF's Utility Library</h2>
+
+
+<h4>Symbolic toolbox helpers</h4>
+<table width="600px">
+  <tbody>
+    <tr>
+      <td>au_coeff</td>
+      <td>Coefficients of symbolic polynomial</td>
+    </tr>
+    <tr>
+      <td>au_ccode</td>
+      <td>Convert symbolic expression to C with common subexpression elimination</td>
+    </tr>
+    <tr>
+      <td>au_autodiff_generate</td>
+      <td>Symbolic differentiation and code generation</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>Faster alternatives to matlab builtins</h4>
+<table width="600px">
+  <tbody>
+    <tr>
+      <td>au_sparse</td>
+      <td>Create spare matrices more efficiently</td>
+    </tr>
+    <tr>
+      <td>au_whist</td>
+      <td>Weighted histogram</td>
+    </tr>
+    <tr>
+      <td>au_bsx</td>
+      <td>Cleaner interface to bsxfun</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>Printing and testing</h4>
+<table>
+  <tbody>
+    <tr>
+      <td>au_prmat</td>
+      <td>Compact matrix printing</td>
+    </tr>
+    <tr>
+      <td>au_test*</td>
+      <td>Utilities for writing unit tests</td>
+    </tr>
+    <tr>
+      <td>au_assert*</td>
+      <td>Easier assertions</td>
+    </tr>
+  </tbody>
+</table>
+<h4>Optimization/Numerics</h4>
+<table>
+  <tbody>
+    <tr>
+      <td>au_levmarq</td>
+      <td>Simple Levenberg-Marquardt</td>
+    </tr>
+    <tr>
+      <td>au_ransac</td>
+      <td>Simple RANSAC</td>
+    </tr>
+    <tr>
+      <td>au_rosenbrock</td>
+      <td>Rosenbrock test function</td>
+    </tr>
+    <tr>
+      <td>au_logsumexp</td>
+      <td>Numerically more stable version of <span class="codeInline">log(sum(exp(V)))</span></td>
+    </tr>
+  </tbody>
+</table>
+<h4>Vision/Graphics/Machine Learning</h4>
+<table>
+  <tbody>
+    <tr>
+      <td>au_rodrigues</td>
+      <td>Exponential map to rotation matrix via Rodrigues's formula</td>
+    </tr>
+    <tr>
+      <td>au_cross_matrix</td>
+      <td>3x3 matrix effecting cross product</td>
+    </tr>
+  </tbody>
+</table>
+<h4>MEX helper</h4>
+<p>The library also contains <a href="/wikipage?title=au_mex.h&amp;referringTitle=Documentation">au_mex.h</a>, a collection of C++ classes which greatly simplify mex file writing. </p>
+<h4>Note</h4>
+<p>The au_ prefix is because it's important in matlab's flat namespace that clashes of function names are avoided.</p>

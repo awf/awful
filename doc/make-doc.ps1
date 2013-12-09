@@ -1,6 +1,6 @@
 $password = read-host "Enter codeplex password:"
 
-# Generate MATLAB help file
+# Generate MATLAB help files
 ./make-matlabhelp
 
 # Generate the HTML
@@ -16,11 +16,14 @@ cat au_mex_reference.txt | % {
 # Publish...
 write-host "Finding blog post"
 $p = ../powershell/metaweblog-get-posts.ps1 https://www.codeplex.com/site/metaweblog awful awfidius $password 10000
-$post = $p | ? { $_.title -eq 'au_mex_reference' }
-write-host "Found post $($post.postId)"
 
-$post.description = cat au_mex_reference.html
+foreach($page in @('au_mex_reference', 'Documentation')) {
+  # mex_ref
+  $post = $p | ? { $_.title -eq $page }
+  write-host "Found post $($post.postId) for page [$page]"
 
-write-host "Posting update"
-$out = ..\powershell\metaweblog-methodcall.ps1 https://www.codeplex.com/site/metaweblog editPost ($post.postId) awfidius $password $post.ToString() "<boolean>1</boolean>"
+  $post.description = cat "$page.html"
 
+  write-host "Posting update"
+  $out = ..\powershell\metaweblog-methodcall.ps1 https://www.codeplex.com/site/metaweblog editPost ($post.postId) awfidius $password $post.ToString() "<boolean>1</boolean>"
+}

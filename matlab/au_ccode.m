@@ -1,7 +1,8 @@
-function out = au_ccode(symobj, filename)
+function out = au_ccode(symobj, filename, DO_CSE)
 % AU_CCODE Generate optimized C code from symbolic expression.
 %             AU_CCODE(SYMEXPR) returns a string
 %             AU_CCODE(SYMEXPR, FILENAME) writes to FILENAME
+%             AU_CCODE(SYMEXPR, FILENAME, 0) turns off CSE
 %             
 %          EXAMPLE:
 %             syms x y real
@@ -20,10 +21,17 @@ if nargin < 2
     filename = [];
 end
 
-fprintf('au_ccode: cse, ');
-cse = feval(symengine, 'generate::optimize', symobj);
+if nargin < 3
+    DO_CSE = 1;
+end
+
+fprintf('au_ccode: ');
+if DO_CSE
+    fprintf('cse, ');
+    symobj = feval(symengine, 'generate::optimize', symobj);
+end
 fprintf('C, ');
-c = feval(symengine, 'generate::C', cse);
+c = feval(symengine, 'generate::C', symobj);
 fprintf('manip...\n');
 cstring = strrep(char(c), '\n', sprintf('\n'));
 

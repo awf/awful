@@ -75,7 +75,7 @@ nparams = length(x);
 if opts.CHECK_DERIVATIVES
     fprintf('checking derivatives...');
   [~,J] = func(x + rand(size(x))*1e-4);
-  emax = check_derivatives(func,x,J);
+  emax = au_check_derivatives(func,x,J);
   fprintf(' emax = %g, norm(x) = %g\n', full(emax), norm(x));
 end
 
@@ -291,21 +291,3 @@ e = sum(r(:).^2);
 %%
 function r = rms(e)
 r = sqrt(mean(e.^2));
-
-%%
-function emax = check_derivatives(f,x,J)
-delta=1e-4;
-scale = 1/2/delta;
-[n,p] = size(J);
-assert(p == numel(x))
-% Check derivatives OK
-fdJ=0*J;
-for k=1:p
-  e = zeros(size(x));
-  e(k) = delta; 
-  fdJ(:,k) = (f(x+e) - f(x-e))*scale;
-end
-emax = max((fdJ(:) - J(:)).^2);
-if max((fdJ(:) - J(:)).^2) > 1e-7
-  error('derivatives wrong')
-end

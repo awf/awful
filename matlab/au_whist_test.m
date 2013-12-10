@@ -1,6 +1,6 @@
 function au_whist_test()
 
-% au_WHIST_TEST Unit test for au_whist
+% AU_WHIST_TEST Unit test for au_whist
 
 % Andrew Fitzgibbon <awf@microsoft.com>
 

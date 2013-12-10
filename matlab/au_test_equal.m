@@ -1,5 +1,6 @@
 function au_test_equal(expr1,expr2,tol,FORCE_PRINT)
-% au_TEST_EQUAL  test all(EXPR1 == EXPR2), print result
+% AU_TEST_EQUAL  Test all(EXPR1 == EXPR2), print result
+%             au_test_equal det(M) 0 1e-7
 %             au_test_equal('det(M)','0',1e-7);
 %             au_test_equal 16+1 17
 %             We call with strings rather than values to give much better

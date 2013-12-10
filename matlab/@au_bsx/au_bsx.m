@@ -1,7 +1,15 @@
 classdef au_bsx
-   % A value class that implements a broadcastable data type
-   % EXAMPLE 
-   %   au_bsx(a) + b   translates to bsxfun(@plus, a, b)
+   % AU_BSX A value class that implements a broadcastable data type
+   %        The term "broadcast" comes from Python.
+   %      EXAMPLE 
+   %        a = rand(5,1); % Vector a
+   %        B = rand(5,7); % Matrix B
+   %        au_bsx(a) + B      % translates to bsxfun(@plus, a, B)
+   %        max(au_bsx(a), B)  % translates to bsxfun(@max, a, B)
+   %      One may wish to alias it, for even less typing:
+   %        bsx = @(x) au_bsx(x)
+   %        a + bsx(B)
+   %      Notice that if any argument is broadcasting, the expression is.
    
    properties
       val

@@ -24,7 +24,7 @@ if nargin == 1 && strcmp(x, 'opts')
   opts.LAMBDA_MAX = 1e8;
   opts.LAMBDA_INCREASE_BASE = 10;
   opts.USE_LINMIN = 0;
-  opts.CHECK_DERIVATIVES = 1;
+  opts.CHECK_DERIVATIVES = 3; % Seconds to spend
   
   % Function called each time f is called.
   opts.InnerIterFcn = @(x) [];  
@@ -73,10 +73,11 @@ nparams = length(x);
 
 %% Optionally check the Jacobian
 if opts.CHECK_DERIVATIVES
-    fprintf('checking derivatives...');
-  [~,J] = func(x + rand(size(x))*1e-4);
-  emax = au_check_derivatives(func,x,J);
-  fprintf(' emax = %g, norm(x) = %g\n', full(emax), norm(x));
+    timeout = opts.CHECK_DERIVATIVES;
+    fprintf('checking derivatives for at most %.1f seconds...', timeout);
+    [~,J] = func(x + rand(size(x))*1e-4); % in case x is zero
+    emax = au_check_derivatives(func,x,J,1e-4, 1e-7, timeout);
+    fprintf(' emax = %g, norm(x) = %g\n', full(emax), norm(x));
 end
 
 if VERBOSE >= 1

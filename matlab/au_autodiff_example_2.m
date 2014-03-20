@@ -3,7 +3,7 @@ function r = au_autodiff_example_2(params, data)
 
 % Define problem using constants, so symbolic eval will see the problem
 % structure
-BIGMODEL = 0;
+BIGMODEL = 1;
 
 if BIGMODEL
     parents = [0 1 2 3 2 3 1 7 8 7];
@@ -18,7 +18,10 @@ nX = length(Xlinks)
 if nargin == 0
     %% TEST CODE
     params = rand(3*nlinks + 3*nX,1)
-    au_autodiff_generate(@au_autodiff_example_1, params, [])
+    tic;
+    fn = 'c:\tmp\au_autodiff_example_2_mex.cpp';
+    au_autodiff_generate(@au_autodiff_example_2, params, [], fn)
+    toc;
     return
 end
 

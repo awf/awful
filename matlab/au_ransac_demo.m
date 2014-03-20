@@ -1,6 +1,5 @@
 function au_ransac_demo
-
-%  au_RANSAC_DEMO  Example of use of au_ransac
+%  AU_RANSAC_DEMO  Example of use of au_ransac
 
 % awf, aug06
 

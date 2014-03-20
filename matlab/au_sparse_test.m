@@ -1,6 +1,6 @@
 function au_sparse_test()
 
-% au_SPARSE_TEST Test routine for mex file au_sparse
+% AU_SPARSE_TEST Test routine for mex file au_sparse
 
 % Author: Andrew Fitzgibbon <awf@robots.ox.ac.uk>
 % Date: 22 Jul 02

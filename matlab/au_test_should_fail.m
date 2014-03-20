@@ -5,11 +5,12 @@ function au_test_should_fail(expr1)
 if nargin == 0
   % Test
   au_test_should_fail rand()()
-  au_test_should_fail 1
+  au_test_should_fail disp('')
+  disp('^^ should_fail should have failed here')
   return
 end
 
-mfile = evalin('caller', 'au_mfilename');
+mfile = au_mfilename(-1);
 hd = ['au_test_should_fail[' mfile ']:'];
 
 try
@@ -18,5 +19,5 @@ try
     fprintf(2, '%s\n', [hd ' FAILED: ' expr1 ' should have thrown']);
     
 catch e
-    disp([hd ' passed: ' expr1 ' threw exception ' e.identifier]);
+    disp([hd ' passed: ' expr1 ' threw exception "' e.message '"']);
 end

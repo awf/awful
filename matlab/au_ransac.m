@@ -1,5 +1,5 @@
 function [params,indices] = au_ransac(opts)
-% au_RANSAC  Ransac loop
+% AU_RANSAC  Ransac loop
 %             OPTS = au_RANSAC('opts', NDATA, NSAMPLES);
 %             au_RANSAC(OPTS)
 %               OPTS.NDATA

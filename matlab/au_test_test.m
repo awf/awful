@@ -1,7 +1,7 @@
 function au_test_test
 
-% Unit "test" for au_test_equal
-% Doesn't really test, as I can't capture the fprintf output.
+% AU_TEST_TEST  Unit "test" for au_test_equal
+%      Doesn't really test, as I can't capture the fprintf output.
 
 % awf, may13
 

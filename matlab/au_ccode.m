@@ -25,10 +25,16 @@ if nargin < 3
     DO_CSE = 1;
 end
 
-fprintf('au_ccode: ');
+fprintf('au_ccode: expr size= ');
+t=clock;
+l=length(char(symobj));
+fprintf('%.2fMB (tookl %.1f sec to measure), ', l/1024/1024, etime(clock,t))
+
 if DO_CSE
+    t=clock;
     fprintf('cse, ');
     symobj = feval(symengine, 'generate::optimize', symobj);
+    fprintf('[%.1fsec]', etime(clock,t));
 end
 fprintf('C, ');
 c = feval(symengine, 'generate::C', symobj);

@@ -1,14 +1,17 @@
 function au_prmat(varargin)
 
-% PR            Compact print of matrices.
+% AU_PRMAT     Compact print of matrices.
 %               PR(A,B,C,...);
 %               Displays matrices in a compact 7-chars-per-column
 %               format.   The format uses 'm' notation to save a char
 %               for small numbers, so that -2.345e-12 gets more sigfigs:
-%                   -2.3e-12 -- won't fit (8 chars)
-%                   -23e-13  -- 7 chars
-%                     -23m7  -- 4 chars
-%               Exact zeros are marked with ?
+%                   |-2.3e-12 -- won't fit (8 chars)
+%                   | -2e-12| -- doesn't use all 7 chars
+%                   |-23e-13| -- 7 chars, extra sigfig
+%                   |-234m14| -- 7 chars, 2 extra sigfigs
+%               Even in 5 chars, get extra sigfigs
+%                   |  -23m7| -- 4 chars
+%               Exact zeros are marked with 'o'
 %               Printing concats horizontally (it's easy
 %               to concat vertically just by repeat calling)
 
@@ -55,7 +58,12 @@ vmax = 0;
 %vmin = inf;
 for k=1:n
     M = mats{k};
-    sz(k,:) = size(M);
+    szk = size(M);
+    if numel(szk) > 2
+        error('Don''t handle multidimensional arrays')
+    end
+    
+    sz(k,:) = szk;
     finitevals = abs(M(isfinite(M)));
     vmax = max(max(finitevals(:)), vmax);
 end
@@ -75,7 +83,7 @@ for i = 1:max(sz(:,1))
             for j=1:c
                 v = M(i,j);
                 if v == 0
-                    fprintf(1, [fmt 's'], '?');
+                    fprintf(1, [fmt 's'], 'o');
                 elseif ~isfinite(v)
                     fprintf(1, [fmt '.1f'], v);
                 elseif abs(v) >= 1e10
@@ -102,6 +110,10 @@ for i = 1:max(sz(:,1))
                     mant = v*10^-expo;
                     if expo>-10
                         digs='2';
+                    elseif expo>=-97
+                        mant = mant*100;
+                        expo = expo-2;
+                        digs = '0';
                     else
                         digs='0';
                     end

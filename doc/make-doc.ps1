@@ -1,5 +1,10 @@
 $password = read-host "Enter codeplex password:"
 
+# Create MatlabAllHelp.html
+# there's a race here, and -wait should fix it but doesn't.  
+# Waiting for mathworks to fix.
+matlab -wait -norc -nosplash -nodisplay -noFigureWindows -nodesktop -r 'au_makedoc;exit'
+
 # Generate the MATLAB help file for au_mex from au_mex_reference.txt
 cat au_mex_reference.txt | % -PROCESS {
   $_ = $_ -replace '<pre>',''
@@ -22,9 +27,6 @@ cat au_mex_reference.txt | % {
 
 # Home page and doc page are the same.
 copy Documentation.html Home.html
-
-# Create MatlabAllHelp.html
-matlab -wait -norc -nosplash -nodisplay -noFigureWindows -nodesktop -r 'au_makedoc;exit'
 
 # Publish...
 write-host "Finding blog post"

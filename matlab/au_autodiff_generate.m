@@ -72,13 +72,14 @@ if isempty(filename)
 end
 
 %% If there is a filename, make it a mexFunction
-fprintf('au_autodiff_generate: writing file\n');
 
 % File descriptor or name?
 if ischar(filename)
+    fprintf('au_autodiff_generate: writing file [%s]\n', filename);
     fd = fopen(filename, 'w');
 else
     fd = filename;
+    fprintf('au_autodiff_generate: writing file [fd=%d]\n', fd);
 end
 
 body = '  /* inner loop */';

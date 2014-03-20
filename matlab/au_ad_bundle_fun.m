@@ -15,16 +15,6 @@ function e = au_ad_bundle_fun(params, data)
 %   out = f * d + [u0 v0];
 
 %%
-if nargin < 1
-  % Looking for info... 
-  e.nin = 15;    % length of "params"
-  e.nout = 2;   % length of "e"
-  e.ndata = 0;  % length of "data"
-  e.headercode = '#include <math.h>\n';
-  return
-end
-
-%%
 rot = params(1:3);
 trans = params(4:6);
 f = params(7);

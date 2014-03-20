@@ -1,5 +1,5 @@
 function au_assert_equal(expr1,expr2,tol,verbose)
-% au_ASSERT  Assert all(EXPR1 == EXPR2), print expr if not
+% AU_ASSERT_EQUAL  Assert all(EXPR1 == EXPR2), print expr if not
 %             au_assert_equal('det(M)','0'[,TOLERANCE][,VERBOSE]);
 %             TOLERANCE < 0 means relative tolerance of
 %              abs(TOLERANCE) * max(abs(EXPR1) + abs(EXPR2))

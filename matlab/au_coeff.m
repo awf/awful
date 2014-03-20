@@ -1,5 +1,5 @@
 function coeffs = au_coeff(symexpr, var)
-% au_COEFF    Extract polynomial coefficients from symbolic expr
+% AU_COEFF    Extract polynomial coefficients from symbolic expr
 %              coeffs = au_COEFF(a + b*x + c*x^6, x)
 
 if nargin == 0

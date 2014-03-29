@@ -1,6 +1,6 @@
 function au_prmat(varargin)
 
-% AU_PRMAT     Compact print of matrices.
+% AU_PRMAT   Compact print of matrices.
 %               PR(A,B,C,...);
 %               Displays matrices in a compact 7-chars-per-column
 %               format.   The format uses 'm' notation to save a char

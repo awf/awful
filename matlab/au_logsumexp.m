@@ -1,5 +1,5 @@
 function [l, Jacobian] = au_logsumexp(M)
-% AU_LOGSUMEXP   Compute log(sum(exp(M))) stably
+% AU_LOGSUMEXP  Compute log(sum(exp(M))) stably
 %                   au_logsumexp(M) = log(sum(exp(M))) 
 %                 but avoids under/overflow.
 

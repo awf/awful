@@ -1,5 +1,8 @@
 function au_makedoc
 
+docdir = [au_root_dir '\..\doc\'];
+
+%%
 matlab_files = what(au_root_dir);
 
 ok_to_ignore = {
@@ -19,7 +22,9 @@ ok_to_ignore = {
   'Contents.m'
   };
 
-fd = fopen('MatlabAllHelp.html', 'wt');
+fn = [docdir 'MatlabAllHelp.html'];
+fprintf(2, 'Writing to [%s]\n', fn);
+fd = fopen(fn, 'wt');
 %fprintf(fd, '<html><title>MatlabAllHelp</title><body>\n');
 for mfile = (matlab_files.m)'
   thismfile = mfile{1};
@@ -29,6 +34,9 @@ for mfile = (matlab_files.m)'
   
   h = help(thismfile);
   if regexp(h, '^[ \t\n]*AU_')
+    summary_line = regexprep(h, '\n.*', '');
+    fprintf(1, '%s\n', summary_line);
+
     h = regexprep(h, '\n', '<br/>\n');
     fprintf(fd,'<p/><hr/>\n%s\n<pre>\n%s</pre>\n\n', thismfile, h);
   else
@@ -38,4 +46,31 @@ for mfile = (matlab_files.m)'
 end
 fprintf(fd, '</body></html>\n');
 fclose(fd);
-disp('Created MatlabAllHelp.html');
+fprintf('Created [%s]\n', fn);
+
+%%
+% Make contents.m
+
+template = fopen([docdir 'Contents_template.txt']);
+fn = [au_root_dir '\Contents.m'];
+fprintf(2, 'Writing to [%s]\n', fn);
+fd = fopen(fn, 'wt');
+fprintf(fd, 'function AUTO_GENERATED_FROM_Contents_template_txt\n');
+while ~feof(template)
+  l = fgetl(template);
+  if regexp(l, '^#')
+    continue
+  end
+  
+  % replace !words with help text
+  [startindex, endindex] = regexp(l, '![A-Za-z0-9_]+');
+  if startindex
+    word = l(startindex+1:endindex);
+    h = help(word);
+    summary_line = regexprep(h, '\n.*', '');
+    l = [l(1:startindex-1) summary_line l(endindex+1:end)];
+  end
+  
+  fprintf(fd, '%% %s\n', l);
+end  
+fclose(fd);

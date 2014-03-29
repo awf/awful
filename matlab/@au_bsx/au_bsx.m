@@ -1,5 +1,5 @@
 classdef au_bsx
-   % AU_BSX A value class that implements a broadcastable data type
+   % AU_BSX     A value class that implements a broadcastable data type
    %        The term "broadcast" comes from Python.
    %      EXAMPLE 
    %        a = rand(5,1); % Vector a

@@ -2,7 +2,9 @@ $password = read-host "Enter codeplex password:"
 
 # Create MatlabAllHelp.html
 # there's a race here, and -wait should fix it but doesn't.  
-# Waiting for mathworks to fix.
+# Waiting for mathworks to fix.  It means that the posted
+# documentation is out of date by one run, so build up a 
+# latex-like mindset that you should always do one more for luck.
 matlab -wait -norc -nosplash -nodisplay -noFigureWindows -nodesktop -r 'au_makedoc;exit'
 
 # Generate the MATLAB help file for au_mex from au_mex_reference.txt
@@ -32,7 +34,15 @@ copy Documentation.html Home.html
 write-host "Finding blog post"
 $p = ../powershell/metaweblog-get-posts.ps1 https://www.codeplex.com/site/metaweblog awful awfidius $password 10000
 
-foreach($page in @('Home', 'au_mex_reference', 'Documentation', 'MatlabAllHelp')) {
+$pages = @(
+'Home', 
+'Documentation', 
+'MatlabAllHelp'
+'au_mex_reference', 
+#'au_mex.h'
+)
+
+foreach($page in $pages) {
   # mex_ref
   $post = $p | ? { $_.title -eq $page }
   write-host "Found post $($post.postId) for page [$page]"

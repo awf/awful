@@ -1,5 +1,5 @@
 function out = au_ccode(symobj, filename, DO_CSE)
-% AU_CCODE Generate optimized C code from symbolic expression.
+% AU_CCODE    Generate optimized C code from symbolic expression.
 %             AU_CCODE(SYMEXPR) returns a string
 %             AU_CCODE(SYMEXPR, FILENAME) writes to FILENAME
 %             AU_CCODE(SYMEXPR, FILENAME, 0) turns off CSE

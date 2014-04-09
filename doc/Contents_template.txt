@@ -16,11 +16,12 @@ that clashes of function names are avoided.
 !AU_PRMAT
   AU_TEST*   Utilities for writing unit tests  
   AU_ASSERT* Easier assertions  
+!AU_ROSENBROCK
 
 *Optimization/Numerics*
 !AU_LEVMARQ
 !AU_RANSAC
-!AU_ROSENBROCK
+!AU_FMIN_PACK
 !AU_LOGSUMEXP
 
 *MEX helper*

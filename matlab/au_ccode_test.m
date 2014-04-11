@@ -23,11 +23,11 @@ for i = 1:size(in_u, 1)
 end
 toc
 
-au_ccode(out)
+s = au_ccode(out);
 
 %%
 fprintf(1, 'codegen\n');
-au_ccode(out, 'au_ccode_test_mex.cpp')
+au_ccode(out, [au_root_dir '/au_ccode_test_mex.cpp'])
 fprintf(1, 'mex\n');
 mex au_ccode_test_mex.cpp
 

@@ -6,3 +6,4 @@ doc/Documentation.html
 doc/Home.html
 doc/MatlabAllHelp.html
 matlab/Contents.m
+matlab/au_ccode_test_mex.cpp

@@ -96,11 +96,14 @@ end
 % If the caller doesn't care about size, use squeeze or (:)
 if tol == 0 || isempty(exprval1) || isempty(exprval2)
   iseq = isequal(exprval1, exprval2);
+  err = iseq;
 else
   % tol > 0
   if all(size(exprval1) == size(exprval2))
-    iseq = max(abs(exprval1(:) - exprval2(:))) <= tol;
+      err = max(abs(exprval1(:) - exprval2(:)));
+    iseq = err <= tol;
   else
+      err= inf;
     iseq = false;
   end
 end
@@ -110,7 +113,7 @@ if ~iseq
   v1 = [expr1 '=' nl v2str(exprval1) nl];
   v2 = [expr2 '=' nl v2str(exprval2) nl];
   sval = [v1 v2];
-  error([sval 'au_assert_equal: FAILED: |' expr1 ' - ' expr2 '| < tol']);
+  error([sval 'au_assert_equal: FAILED: |' expr1 ' - ' expr2 '| = ' num2str(err) ' < tol [' num2str(tol) ']']);
 else
   if verbose
     disp(['PASSED: ' expr1 ' == ' expr2]);

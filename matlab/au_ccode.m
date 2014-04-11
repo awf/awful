@@ -28,8 +28,13 @@ end
 fprintf('au_ccode: expr size= ');
 t=clock;
 l=length(char(symobj));
-fprintf('%.2fMB (tookl %.1f sec to measure), ', l/1024/1024, etime(clock,t))
+fprintf('%.2fMB (took %.1f sec to measure), ', l/1024/1024, etime(clock,t))
 
+% Capture symvars and size before CSE
+vars = symvar(symobj);
+[out_rows,out_cols] = size(symobj);
+
+% Now do common subexpression elimination if required
 if DO_CSE
     t=clock;
     fprintf('cse, ');
@@ -62,8 +67,6 @@ else
     fd = filename;
 end
 
-[out_rows,out_cols] = size(symobj);
-vars = symvar(symobj);
 nvars = length(vars);
 GetVars = '';
 for vi = 1:nvars

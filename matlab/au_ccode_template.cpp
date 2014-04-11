@@ -1,4 +1,4 @@
-#line 2 "au_ccode_template.cpp"
+// not helpful... #line 2 "au_ccode_template.cpp"
 
 #include "mex.h"
 #include "matrix.h"

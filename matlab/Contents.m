@@ -16,11 +16,12 @@ function AUTO_GENERATED_FROM_Contents_template_txt
 %   AU_PRMAT   Compact print of matrices.
 %   AU_TEST*   Utilities for writing unit tests  
 %   AU_ASSERT* Easier assertions  
+%   AU_ROSENBROCK Rosenbrock
 % 
 % *Optimization/Numerics*
 %   AU_LEVMARQ    Home-grown LM with line search
 %   AU_RANSAC     Ransac loop
-%   AU_ROSENBROCK Rosenbrock
+%   AU_FMIN_PACK  Pack variously-sized parameters into a linear vector x.
 %   AU_LOGSUMEXP  Compute log(sum(exp(M))) stably
 % 
 % *MEX helper*

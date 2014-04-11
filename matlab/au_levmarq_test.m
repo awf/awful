@@ -1,5 +1,7 @@
 function logout = au_levmarq_test
 
+% au_levmarq_test Unit test for au_levmarq
+
 % Constant in Rosenbrock function
 K = 10;
 

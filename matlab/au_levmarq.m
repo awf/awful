@@ -1,12 +1,18 @@
 function [x, f, log_data] = au_levmarq(x, func, opts)
 
 % AU_LEVMARQ    Home-grown LM with line search
-%               [x, J, OPTS] = au_levmarq(x, f)
-%               x:  Initial estimate
+%               [x, J, log] = au_levmarq(x, f, opts)
+%               x:     Initial estimate
 %               func:  Function to be called.
+%               opts:  Algorithm options (see below)
 %               For some problems, matlab's lsqnonlin will be better than 
 %               this, but this is useful as a "bare bones" implementation
 %               that you can modify.
+%         
+%               OPTIONS:
+%               To get a default options structure, use
+%               OPTS = AU_LEVMARQ('OPTS');
+%               EDIT AU_LEVMARQ  % to see options descriptions
 
 % awf, jul13
 
@@ -16,16 +22,18 @@ if nargin == 0
 end
 
 if nargin == 1 && strcmp(x, 'opts')
-  opts.MaxIter = 100;
-  opts.MaxFunEvals = 1000;
-  opts.Display = 'iter';
-  opts.LAMBDA_MIN = 1e-12;
-  opts.LAMBDA_DECREASE = 2;
-  opts.LAMBDA_MAX = 1e8;
-  opts.LAMBDA_INCREASE_BASE = 10;
-  opts.USE_LINMIN = 0;
-  opts.CHECK_DERIVATIVES = 3; % Seconds to spend
-  
+  opts.MaxIter = 100;      % Maximum number of outer iterations
+  opts.MaxFunEvals = 1000; % Maximum numbre of function calls
+  opts.Display = 'iter';   % Verbosity: none, final, final+, iter
+  opts.CHECK_JACOBIAN = 3; % Seconds to spend checking derivatives.
+  opts.USE_LINMIN = 0;     % Use a line search?
+  opts.SCHUR_SPLIT = 0;    % Use Schur decompostion. 
+                           % If n = opts.SCHUR_SPLIT, and J = [A B]
+                           % with cols(A) = n, then assume B'*B
+                           % is fast to invert using pcg.
+  opts.USE_JTJ = 1;        % Form J'*J before solving
+  opts.DECOMP_LU = 0;      % 1: backslash, 0: PCG
+
   % Function called each time f is called.
   opts.InnerIterFcn = @(x) [];  
 
@@ -37,11 +45,13 @@ if nargin == 1 && strcmp(x, 'opts')
   
   % Function called after each reduction in f,
   opts.PlotFcn = @(x, fval) [];
+
+  % Levenberg-Marquardt parameters.  
+  opts.LAMBDA_MIN = 1e-12; 
+  opts.LAMBDA_DECREASE = 2;
+  opts.LAMBDA_MAX = 1e8;
+  opts.LAMBDA_INCREASE_BASE = 10;
   
-  % Normal equations options
-  opts.SCHUR_SPLIT = 0;
-  opts.USE_JTJ = 1;
-  opts.DECOMP_LU = 0;  % Use backslash or PCG?
   x = opts;
   return
 end
@@ -72,11 +82,12 @@ x = x(:);
 nparams = length(x);
 
 %% Optionally check the Jacobian
-if opts.CHECK_DERIVATIVES
-    timeout = opts.CHECK_DERIVATIVES;
-    fprintf('checking derivatives for at most %.1f seconds...', timeout);
-    [~,J] = func(x + rand(size(x))*1e-4); % in case x is zero
-    emax = au_check_derivatives(func,x,J,1e-4, 1e-7, timeout);
+if opts.CHECK_JACOBIAN
+    timeout = opts.CHECK_JACOBIAN;
+    fprintf('au_levmarq: checking derivatives for at most %.1f seconds...', timeout);
+    x_fd_check = x + rand(size(x))*1e-4;
+    [~,J] = func(x_fd_check ); 
+    emax = au_check_derivatives(func,x_fd_check,J,1e-5, 1e-5, timeout);
     fprintf(' emax = %g, norm(x) = %g\n', full(emax), norm(x));
 end
 

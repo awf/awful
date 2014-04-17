@@ -13,6 +13,10 @@ function [x, f, log_data] = au_levmarq(x, func, opts)
 %               To get a default options structure, use
 %               OPTS = AU_LEVMARQ('OPTS');
 %               EDIT AU_LEVMARQ  % to see options descriptions
+%
+%               LOG:
+%               Optional third argument LOG has rows
+%                 [lambda, function_value, linmin_t, funevals]
 
 % awf, jul13
 
@@ -45,6 +49,9 @@ if nargin == 1 && strcmp(x, 'opts')
   
   % Function called after each reduction in f,
   opts.PlotFcn = @(x, fval) [];
+
+  % How to display the scalar error
+  opts.DisplayErr = @(e) sum(e.^2);
 
   % Levenberg-Marquardt parameters.  
   opts.LAMBDA_MIN = 1e-12; 
@@ -84,7 +91,6 @@ nparams = length(x);
 %% Optionally check the Jacobian
 if opts.CHECK_JACOBIAN
     timeout = opts.CHECK_JACOBIAN;
-    fprintf('au_levmarq: checking derivatives for at most %.1f seconds...', timeout);
     x_fd_check = x + rand(size(x))*1e-4;
     [~,J] = func(x_fd_check ); 
     emax = au_check_derivatives(func,x_fd_check,J,1e-5, 1e-5, timeout);
@@ -93,8 +99,8 @@ end
 
 if VERBOSE >= 1
   e = func(x);
-  fprintf('au_levmarq: Beginning LM params %d, residuals %d, initial RMS = %g\n', ...
-    nparams, numel(e), rms(e));
+  fprintf('au_levmarq: Beginning LM params %d, residuals %d, initial err = %g\n', ...
+      nparams, numel(e), opts.DisplayErr(e));
 
   if ~isempty(opts.PlotFcn)
       opts.PlotFcn(x, sumsq(e));
@@ -220,6 +226,7 @@ while true
         % Execute linmin
         [t,f_test,~,fminbnd_output] = fminbnd(f1d, .2, 10, fminbnd_options);
         x_test = x + t * dx;
+        e_test = func(x_test);
         funevals = funevals + fminbnd_output.funcCount;
         if VERBOSE >= 2, fprintf('linmin [t=%4.2f], f=%d, ', t, funevals); end
         % record log data for both rejections and acceptances,
@@ -227,15 +234,18 @@ while true
 
     else
         x_test = x + dx;
-        f_test = sumsq(func(x_test));
+        e_test = func(x_test);
+        f_test = sumsq(e_test);
         funevals = funevals + 1;
         % record log data for both rejections and acceptances,
         log_data = [log_data; lm_lambda, f_test, 1, funevals];
 
     end
 
+    f_disp = opts.DisplayErr(e_test);
+    au_assert_equal numel(f_disp) 1
     if f_test < f
-      if VERBOSE >= 2, drawnow; fprintf('Accept %g\n', f_test); end
+      if VERBOSE >= 2, drawnow; fprintf('Accept %g\n', f_disp); end
       if ~isempty(opts.PlotFcn)
           opts.PlotFcn(x_test, f_test);
       end
@@ -246,7 +256,7 @@ while true
       f = f_test;
       break
     else
-      if VERBOSE >= 2, drawnow; fprintf('**rej* %g\n', f_test); end
+      if VERBOSE >= 2, drawnow; fprintf('**rej* %g\n', f_disp); end
       % This means linmin failed -- the whole direction is wrong, so LAMBDA_MAX should be large
       if lm_lambda > opts.LAMBDA_MAX
         endmsg = 'exceeded lambda_max';

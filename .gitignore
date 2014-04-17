@@ -1,7 +1,6 @@
 *.mexw64
 *.asv
 *.au_bak
-au_ccode_test_mex.cpp
 doc/Documentation.html
 doc/Home.html
 doc/MatlabAllHelp.html

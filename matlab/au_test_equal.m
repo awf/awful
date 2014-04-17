@@ -13,6 +13,10 @@ if nargin == 0
   return
 end
 
+if nargin < 2
+    error('au_test_equal: need at least two arguments')
+end
+
 if nargin < 3
   tol = 0;  % There is no other sensible default.
 else
@@ -33,7 +37,7 @@ end
 mfile = au_mfilename(-1);
 exprval1 = evalin('caller',expr1);
 exprval2 = evalin('caller',expr2);
-symbolic = mlp_issym(exprval1) || mlp_issym(exprval2);
+symbolic = isa(exprval1,'sym') || isa(exprval2,'sym');
 
 hd = ['au_test_equal[' mfile ']:'];
 

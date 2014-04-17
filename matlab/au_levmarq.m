@@ -26,7 +26,7 @@ if nargin == 0
 end
 
 if nargin == 1 && strcmp(x, 'opts')
-  opts.MaxIter = 100;      % Maximum number of outer iterations
+  opts.MaxIter = Inf;      % Maximum number of outer iterations
   opts.MaxFunEvals = 1000; % Maximum numbre of function calls
   opts.Display = 'iter';   % Verbosity: none, final, final+, iter
   opts.CHECK_JACOBIAN = 3; % Seconds to spend checking derivatives.
@@ -122,7 +122,6 @@ while true
   % This outer loop is called for each Jacobian computation
   % We assume that computing J is an expensive operation so 
   % try to squeeze as much out of each J as possible.
-
   %% Recompute jacobian
 
   % Call user's IterStartFcn
@@ -136,15 +135,23 @@ while true
   % Call func
   [e,J] = func(x);
   funevals = funevals + 1;
+
+  % Test for exit here, so that e is correct for x
+  if iter > opts.MaxIter
+      endmsg = '>MaxIter';
+      break;
+  end
+
   iter = iter + 1;
 
   % Record new f
   f = sumsq(e);
+  f_disp = opts.DisplayErr(e);
 
-  log_data = [log_data; lm_lambda f -1 funevals];
+  log_data = [log_data; lm_lambda f_disp -1 funevals];
 
   if (VERBOSE > 1) && (VERBOSE < 2)
-    fprintf(' %g', f);
+    fprintf(' %g', f_disp);
   end
   
   % Estimate Jacobian norm and preconditioner for PCG
@@ -227,27 +234,28 @@ while true
         [t,f_test,~,fminbnd_output] = fminbnd(f1d, .2, 10, fminbnd_options);
         x_test = x + t * dx;
         e_test = func(x_test);
+        f_disp = opts.DisplayErr(e_test);
         funevals = funevals + fminbnd_output.funcCount;
-        if VERBOSE >= 2, fprintf('linmin [t=%4.2f], f=%d, ', t, funevals); end
+        if VERBOSE >= 2, fprintf('linmin [t=%4.2f], #f=%d, ', t, funevals); end
         % record log data for both rejections and acceptances,
-        log_data = [log_data; lm_lambda, f_test, t, funevals];
+        log_data = [log_data; lm_lambda, f_disp, t, funevals];
 
     else
         x_test = x + dx;
         e_test = func(x_test);
+        f_disp = opts.DisplayErr(e_test);
         f_test = sumsq(e_test);
         funevals = funevals + 1;
         % record log data for both rejections and acceptances,
-        log_data = [log_data; lm_lambda, f_test, 1, funevals];
+        log_data = [log_data; lm_lambda, f_disp, 1, funevals];
 
     end
 
-    f_disp = opts.DisplayErr(e_test);
     au_assert_equal numel(f_disp) 1
     if f_test < f
       if VERBOSE >= 2, drawnow; fprintf('Accept %g\n', f_disp); end
       if ~isempty(opts.PlotFcn)
-          opts.PlotFcn(x_test, f_test);
+          opts.PlotFcn(x_test, f_disp);
       end
       
       if lm_lambda > opts.LAMBDA_MIN
@@ -301,7 +309,7 @@ end
 if (VERBOSE >= 1) && (VERBOSE < 3)
   if VERBOSE == 1.5, fprintf('\n'); end
   if VERBOSE >= 1, fprintf('au_levmarq:'); end
-  fprintf(' done [%s], rms=%g, %d iterations, %d evals\n', endmsg, rms(e), iter, funevals);
+  fprintf(' done [%s], err=%g, %d iterations, %d evals\n', endmsg, rms(e), iter, funevals);
 end
 
 %%

@@ -190,7 +190,6 @@ struct mlx_cast {
 
 
 // ----------------------------------------------------------------------------
-
 // Create an mxArray of given size, with 
 // the matlab class id corresponding to C++ type T
 template <class T>
@@ -219,8 +218,11 @@ private:
     {
         size = size_;
         int *odims = (int *)mxMalloc(sizeof(int)*size.n);
-        for(int i=0; i<size.n; i++)
+        numel_ = 1;
+	for(int i=0; i<size.n; i++) {
             odims[i] = size.dims[i];
+	    numel_ *= odims[i];
+	}
         mx_array = mxCreateNumericArray(size.n, odims, 
                 matlab_class_id, mxREAL);
 

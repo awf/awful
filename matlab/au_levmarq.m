@@ -27,7 +27,7 @@ end
 
 if nargin == 1 && strcmp(x, 'opts')
   opts.MaxIter = Inf;      % Maximum number of outer iterations
-  opts.MaxFunEvals = 1000; % Maximum numbre of function calls
+  opts.MaxFunEvals = 1e6;  % Maximum numbre of function calls
   opts.Display = 'iter';   % Verbosity: none, final, final+, iter
   opts.CHECK_JACOBIAN = 3; % Seconds to spend checking derivatives.
   opts.USE_LINMIN = 0;     % Use a line search?

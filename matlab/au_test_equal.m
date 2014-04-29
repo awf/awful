@@ -42,18 +42,22 @@ symbolic = isa(exprval1,'sym') || isa(exprval2,'sym');
 hd = ['au_test_equal[' mfile ']:'];
 
 if symbolic
-  eq = all(exprval1 == exprval2);
+    eq = all(exprval1 == exprval2);
+elseif isequal(exprval1, exprval2)
+    eq = 1;
+elseif isnumeric(exprval1) && isnumeric(exprval2) && isequal(size(exprval1), size(exprval2))
+    % Check for doubles within tolerance
+    eq = all(max(abs(double(exprval1(:)) - double(exprval2(:)))) <= tol);
 else
-  eq = isequal(size(exprval1), size(exprval2)) && ...
-    all(max(abs(double(exprval1(:)) - double(exprval2(:)))) <= tol);
+    eq = 0;
 end
 
 if ~eq
-  if symbolic,
+  if ~isnumeric(exprval1)
     fprintf(2, '%s\n', [hd ' FAILED: ' expr1 ' == ' expr2 ]);
   else
     fprintf(2, '%s\n', [hd '*FAILED* |' expr1 ' - ' expr2 '| < tol']);
-    if numel(exprval1) < 10 || FORCE_PRINT
+    if (numel(exprval1) < 10 || FORCE_PRINT)
       m2s = @(x) mlp_mat2str(x, 3, 40);
       if ~strcmp(expr1, num2str(exprval1(:)'))
         fprintf(2, '   with %s = %s\n', expr1, m2s(exprval1));

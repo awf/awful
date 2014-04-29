@@ -8,6 +8,7 @@ function au_test_test
 fail = @() fprintf('au_test_test: that should have ^- FAILED?\n\n');
 
 % Begin testing proper
+disp('** Testing au_test_* **')
 fprintf(2, 'au_test_test: these should pass\n');
 au_test_equal 16+1 17
 au_test_equal 0 sin(0)
@@ -40,3 +41,4 @@ disp('au_test_test: That should have passed, and truncated the string');
 
 % Test printing
 au_test_equal rand(3,4) rand(3,4,5) 1e-5 print
+fail()

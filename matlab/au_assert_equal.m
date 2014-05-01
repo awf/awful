@@ -124,5 +124,5 @@ function s = v2str(m)
 if iscell(m)
   s = ['[cell, size[' sprintf(' %d', size(m)) ']]'];
 else
-  s = mlp_mat2str(m,4,10);
+  s = au_mat2str(m,4,10);
 end

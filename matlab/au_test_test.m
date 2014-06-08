@@ -42,3 +42,6 @@ disp('au_test_test: That should have passed, and truncated the string');
 % Test printing
 au_test_equal rand(3,4) rand(3,4,5) 1e-5 print
 fail()
+
+au_test_equal rand(3,4) rand(3,4) 1e-6
+fail()

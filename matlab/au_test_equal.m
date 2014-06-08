@@ -40,6 +40,7 @@ exprval2 = evalin('caller',expr2);
 symbolic = isa(exprval1,'sym') || isa(exprval2,'sym');
 
 hd = ['au_test_equal[' mfile ']:'];
+err = inf;
 
 if symbolic
     eq = all(exprval1 == exprval2);
@@ -47,7 +48,8 @@ elseif isequal(exprval1, exprval2)
     eq = 1;
 elseif isnumeric(exprval1) && isnumeric(exprval2) && isequal(size(exprval1), size(exprval2))
     % Check for doubles within tolerance
-    eq = all(max(abs(double(exprval1(:)) - double(exprval2(:)))) <= tol);
+    err = max(abs(double(exprval1(:)) - double(exprval2(:))));
+    eq = err <= tol;
 else
     eq = 0;
 end
@@ -56,7 +58,7 @@ if ~eq
   if ~isnumeric(exprval1)
     fprintf(2, '%s\n', [hd ' FAILED: ' expr1 ' == ' expr2 ]);
   else
-    fprintf(2, '%s\n', [hd '*FAILED* |' expr1 ' - ' expr2 '| < tol']);
+    fprintf(2, '%s *FAILED* |%s - %s| < %g (ERR=%g)\n', hd, expr1, expr2, tol, err);
     if (numel(exprval1) < 10 || FORCE_PRINT)
       m2s = @(x) mlp_mat2str(x, 3, 40);
       if ~strcmp(expr1, num2str(exprval1(:)'))
@@ -69,8 +71,8 @@ if ~eq
   end
 else
   if tol ~= 0
-    disp([hd ' passed: |' expr1 ' == ' expr2 '| < tol']);
+    fprintf(1, '%s passed: |%s - %s| < %g\n', hd, expr1, expr2, tol);
   else
-    disp([hd ' passed: ' expr1 ' == ' expr2]);
+    fprintf(1, '%s passed: %s == %s\n', hd, expr1, expr2);
   end
 end

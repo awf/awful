@@ -84,7 +84,7 @@ else
 end
 
 if isempty(expr1) || isempty(expr2)
-  error('Expression arguments must be strings to be evaluated, or named variables');
+  error('awful:assert', 'Expression arguments must be strings to be evaluated, or named variables');
 end
 
 if tol < 0
@@ -113,10 +113,10 @@ if ~iseq
   v1 = [expr1 '=' nl v2str(exprval1) nl];
   v2 = [expr2 '=' nl v2str(exprval2) nl];
   sval = [v1 v2];
-  error([sval 'au_assert_equal: FAILED: |' expr1 ' - ' expr2 '| = ' num2str(err) ' < tol [' num2str(tol) ']']);
+  error('awful:assert', [sval 'au_assert_equal: FAILED: |' expr1 ' - ' expr2 '| = ' num2str(err) ' < tol [' num2str(tol) ']']);
 else
   if verbose
-    disp(['PASSED: ' expr1 ' == ' expr2]);
+    disp(['au_assert_equal: PASSED: ' expr1 ' == ' expr2]);
   end
 end
 

@@ -6,6 +6,7 @@ that clashes of function names are avoided.
 *Symbolic toolbox helpers*
 !AU_COEFF
 !AU_CCODE
+!AU_AUTODIFF_GENERATE
 
 *Faster/more convenient alternatives to matlab builtins*
 !AU_SPARSE
@@ -24,5 +25,9 @@ that clashes of function names are avoided.
 !AU_FMIN_PACK
 !AU_LOGSUMEXP
 
+*File I/O helpers*
+!AU_FSCAN_REGEXP
+
 *MEX helper*
 !AU_MEX
+

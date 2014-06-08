@@ -24,5 +24,9 @@ function AUTO_GENERATED_FROM_Contents_template_txt
 %   AU_FMIN_PACK  Pack variously-sized parameters into a linear vector x.
 %   AU_LOGSUMEXP  Compute log(sum(exp(M))) stably
 % 
+% *File I/O helpers*
+%   AU_FSCAN_REGEXP  File scan line by line splitting on regexp
+% 
 % *MEX helper*
 %   AU_MEX    C++ classes to greatly simplify MEX programming
+% 

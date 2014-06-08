@@ -12,16 +12,23 @@ if nargin == 0
     help au_map
     
     v = {'a' 'b'};
-    au_map(@(x) ['_' x], v) 
+    v1 = au_map(@(x) ['_' x], v);
+    v2 = {'_a' '_b'};
+    au_test_equal v1 v2
 
-    X = reshape([1 2; 3 4; 5 6; 7 8], [2 2 2])
-    au_map(@(x) [x x*11;x*11 x; inf inf], X) 
-    au_map(@(x) sprintf('_%d_ ', x), X) 
-   
-    au_map(@exp, rand(3,3))
+    X = reshape([1 2; 3 4; 5 6; 7 8], [2 2 2]);
+    X1 = au_map(@(x) [x x*11;x*11 x; inf inf], X);
+    au_test_equal X1(4,2,1) 33
+    X1 = au_map(@(x) sprintf('_%d_ ', x), X);
+    au_test_equal X1{2,2,2} '''_8'''
     
-    au_map(@isequal, {1 2 3}, {1 2 3})
-    au_map(@isequal, [1 2 3], [1 2 3])
+    r = rand(3,3);
+    au_test_equal au_map(@exp,r) exp(r)
+
+    v0 = au_map(@isequal, {1 2 3}, {1 2 3});
+    au_test_equal v0 {1,1,1}
+    v0 = au_map(@isequal, [1 2 3], [1 2 3]);
+    au_test_equal v0 [1,1,1]
     
     disp('Compare timing to builtin...');
     c= cell(1e2,1e3); for k=1:length(c); c{k} =rand(2,3); end
@@ -102,15 +109,17 @@ if isnumeric(xs)
     
     % check if all sizes are the same,
     % if so, kron them
-    szs = au_map(@(x) size(x), out);
-    all_same_size = all(all(cat(1, szs{:})));
-    if all_same_size
-        sz_in = size(xs);
-        sz = size(out{1});
-        sz(length(sz)+1:length(sz_in)) = 1;
-        sz_in(length(sz_in)+1:length(sz)) = 1;
-        
-        out = reshape(cell2mat(out), sz.*sz_in);
+    if iscell(out) && (isnumeric([out{:}]) || islogical([out{:}]))
+        szs = au_map(@(x) size(x), out);
+        all_same_size = all(all(cat(1, szs{:})));
+        if all_same_size
+            sz_in = size(xs);
+            sz = size(out{1});
+            sz(length(sz)+1:length(sz_in)) = 1;
+            sz_in(length(sz_in)+1:length(sz)) = 1;
+            
+            out = reshape(cell2mat(out), sz.*sz_in);
+        end
     end
     return
 end

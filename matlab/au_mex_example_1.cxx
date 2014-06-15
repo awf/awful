@@ -1,16 +1,10 @@
-// Bare-bones example of au_mex
-
 #include "au_mex.h"
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+// Declare mlx_function (C++ version of mexFunction)
+void mlx_function(mlx_inputs& in, mlx_outputs& out)
 {
-   mlx_inputs  in(nrhs, prhs); // Wrap inputs
-   mlx_outputs out(nlhs, plhs); // Wrap outputs
-
-   mlx_cast<double> A(in[0]); // Get input 0
-   mlx_cast<double> B(in[1]); // Get input 1
-
-   mlx_assert(A.size == B.size);// Check sizes match
+   mlx_array<double> A(in[0]); // Get input 0
+   mlx_array<double> B(in[1]); // Get input 1
 
    mlx_make_array<double> sum(A.size); // Make output array
 

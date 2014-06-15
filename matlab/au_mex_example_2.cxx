@@ -5,7 +5,7 @@
 #include "au_mex.h"
 
 template <class Real>
-mlx_cast<Real> Compute(mlx_cast<Real> const& A, mlx_cast<Real> const& B)
+mlx_array<Real> Compute(mlx_array<Real> const& A, mlx_array<Real> const& B)
 {
    mlx_assert(A.size == B.size);// Check sizes match
 
@@ -24,18 +24,15 @@ bool try_cast(mxArray const* pA, mxArray const* pB, mlx_output* out)
    if (!(mlx_isa<Real>(pA) && mlx_isa<Real>(pB))) 
       return false;  // Return silently if types don't match.
 
-   mlx_cast<Real> A(pA);  
-   mlx_cast<Real> B(pB);
+   mlx_array<Real> A(pA);  
+   mlx_array<Real> B(pB);
 
    *out = Compute(A, B);
    return true;
-}   
+}
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void mlx_function(mlx_inputs& in, mlx_outputs& out)
 {
-   mlx_inputs  in(nrhs, prhs); // Wrap inputs
-   mlx_outputs out(nlhs, plhs); // Wrap outputs
-   
    // Enumerate the types.  You really do have to do this, so that the 
    // C++ compiler can lay down different code for each case.
    // You could clean this up with a macro if you like that sort of thing.

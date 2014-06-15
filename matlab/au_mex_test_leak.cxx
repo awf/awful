@@ -3,7 +3,7 @@
 
 #include "au_mex.h"
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void mlx_function(mlx_inputs& in, mlx_outputs& out)
 {
    mlx_make_array<double> tmp(1000,1000); // Make possible leaker
 }

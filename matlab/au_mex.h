@@ -5,7 +5,7 @@
  * little arcane to code.   This header file contains a number of routines 
  * to simplify them.
  *
- * The most important class is mlx_cast<T> which behaves like a pointer to
+ * The most important class is mlx_array<T> which behaves like a pointer to
  * an mxArray.  To write a fully error-checked mex file which adds two 
  * double arrays, write this:
  *
@@ -101,12 +101,12 @@ bool operator==(mlx_dims const& a, mlx_dims const& b)
 
 // ----------------------------------------------------------------------------
 
-// Pass to mlx_cast to indicate that type mismatch is non-fatal.
-static const bool mlx_cast_nothrow = false;
+// Pass to mlx_array to indicate that type mismatch is non-fatal.
+static const bool mlx_array_nothrow = false;
 
 // This is a (thankfully not too) smart pointer to an mxArray.
 template <class T>
-struct mlx_cast {
+struct mlx_array {
   mxArray const* mx_array;
   mxClassID matlab_class_id;
   bool ok;
@@ -119,7 +119,7 @@ struct mlx_cast {
   // Take mxArray pointer 'a', and check that its contents
   // correspond to the template type parameter T.
   // If so, take local copies of its size and data pointer.
-  mlx_cast(mxArray const* a, bool throw_on_type_mismatch = true) 
+  mlx_array(mxArray const* a, bool throw_on_type_mismatch = true) 
   {
     mx_array = a;
     matlab_class_id = mlx_class_id((T*)0);
@@ -193,7 +193,7 @@ struct mlx_cast {
 // Create an mxArray of given size, with 
 // the matlab class id corresponding to C++ type T
 template <class T>
-struct mlx_make_array : mlx_cast<T>
+struct mlx_make_array : mlx_array<T>
 {
     // Construct from (rows, cols)
     mlx_make_array(mwSize rows, mwSize cols):
@@ -212,7 +212,7 @@ struct mlx_make_array : mlx_cast<T>
     }
 
 private:
-    typedef mlx_cast<T> base_t;
+    typedef mlx_array<T> base_t;
     
     void create(mlx_dims const& size_)
     {
@@ -258,16 +258,16 @@ struct mlx_inputs {
 
 // Helper class to allow
 // out[i] = x;
-// where x is an mlx_cast<> object;
+// where x is an mlx_array<> object;
 struct mlx_output {
     mxArray** array_ptr;
     
     // Construct from pointer to mxArray*
     mlx_output(mxArray** array_ptr = 0):array_ptr(array_ptr) {}
     
-    // Assign from mlx_cast<T>
+    // Assign from mlx_array<T>
     template <class T>
-    mlx_output& operator=(mlx_cast<T>& that) {
+    mlx_output& operator=(mlx_array<T>& that) {
         *array_ptr = const_cast<mxArray*>(that.mx_array);
         return *this;
     }
@@ -300,96 +300,14 @@ struct mlx_outputs {
         return mlx_output(&plhs[i]);
     }
 };
-// ----------------------------------------------------------------------------
 
-template <class T>
-struct mlx_numeric_traits {
-};
+#ifndef MLX_NO_MEXFUNCTION
+void mlx_function(mlx_inputs& in, mlx_outputs& out);
 
-template <>
-struct mlx_numeric_traits<unsigned int> {
-  typedef unsigned int wide_t;
-};
-
-template <>
-struct mlx_numeric_traits<mlx_uint8> {
-  typedef unsigned int wide_t;
-};
-
-template <>
-struct mlx_numeric_traits<mlx_single> {
-  typedef mlx_double wide_t;
-};
-
-template <>
-struct mlx_numeric_traits<mlx_double> {
-  typedef mlx_double wide_t;
-};
-
-// ----------------------------------------------------------------------------
-
-template <class T>
-struct mlx_traits {
-};
-
-template <>
-struct mlx_traits<mlx_uint8> {
-  typedef mlx_uint8 T;
-  typedef mlx_numeric_traits<T>::wide_t wide_t;
-  static T colour_max() { return 255; }
-  static T narrowing_divide_by_max(wide_t val) { return T(val / 255); }
-};
-
-template <>
-struct mlx_traits<mlx_single> {
-  typedef mlx_single T;
-  typedef mlx_numeric_traits<T>::wide_t wide_t;
-
-  static T colour_max() { return 1.0f; }
-  static T narrowing_divide_by_max(wide_t t) { return T(t); }
-};
-
-template <>
-struct mlx_traits<mlx_double> {
-  typedef mlx_double T;
-  typedef mlx_numeric_traits<T>::wide_t wide_t;
-
-  static T colour_max() { return 1.0; }
-  static T narrowing_divide_by_max(wide_t t) { return T(t); }
-};
-
-template <class T>
-bool assert_equal(T*,T*) {};
-
-template <class T1, class T2>
-struct mlp_pairwise_traits {
-  typedef typename mlx_numeric_traits<T1>::wide_t wide1_t;
-  typedef typename mlx_numeric_traits<wide1_t>::wide_t wide_t;
-  
-  typedef typename mlx_numeric_traits<wide_t>::wide_t wide_t_from2;
-
-  // Check that wide of wide is the same for both...
-  void f() { assert_equal((wide_t*)0, (wide_t_from2*)0); }
-};
-
-// ----------------------------------------------------------------------------
-
-template <class T1, class T2>
-inline
-typename mlp_pairwise_traits<T1,T2>::wide_t
-widening_product(T1 a, T2 b)
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-  typedef typename mlp_pairwise_traits<T1,T2>::wide_t out_t;
-  return out_t(out_t(a) * out_t(b));
+   mlx_inputs  in(nrhs, prhs); // Wrap inputs -- allows us to check the number and datatypes
+   mlx_outputs out(nlhs, plhs); // Wrap outputs
+   mlx_function(in, out);
 }
-
-inline unsigned int saturating_add(unsigned int a, unsigned int b)
-{
-  return a + b;
-}
-
-
-inline double saturating_add(double a, double b)
-{
-  return a + b;
-}
+#endif

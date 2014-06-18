@@ -15,15 +15,14 @@ function str = au_autodiff_generate(function_handle, example_arguments, example_
 % awf, dec13
 
 if nargin == 0
-    f = @(x,data) [sin(x(3)/norm(x(1:2))); 4*cos((6*x(1)-6*x(3))+x(2)^2)];
+    %%
+    f = @(x,data) [sin(x(3)/norm(x(1:2))); 14*cos((6*x(1)-6*x(3))+x(2)^2)];
     p = [1 2 3]';
     f(p)
     
-    au_autodiff_generate(f, p, [], 'c:/tmp/au_autodiff_generate_test.cpp')
-    % type c:\tmp\au_autodiff_generate_test.cpp
-    fprintf('mexing... c:\\tmp\\au_autodiff_generate_test.cpp\n')
-    mex -I. c:/tmp/au_autodiff_generate_test.cpp
-    
+    au_autodiff_generate(f, p, [], 'c:/tmp/au_autodiff_generate_test.cpp');
+ 
+    % Check it exists and is callable
     out = au_autodiff_generate_test([p p p], zeros(0,3));
     out_val = out(1:2,1)
     out_jac = reshape(out(3:end,1), 2, 3)
@@ -86,7 +85,7 @@ body = '  /* inner loop */';
 body = sprintf('%s\n%s', body, str);
 
 % Get Template Text
-tfd = fopen('au_autodiff_generate_template.cpp', 'r');
+tfd = fopen([au_root_dir '/au_autodiff_generate_template.cpp'], 'r');
 template = fread(tfd, inf, 'char');
 fclose(tfd);
 
@@ -103,4 +102,24 @@ template = strrep(template, '@OutRows', num2str(size(out,1)));
 fprintf(fd, '%s', template);
 if ischar(filename)
     fclose(fd);
+end
+
+%% And mex it and test it...
+if ischar(filename)
+    fprintf('au_autodiff_generate: mexing... [%s]\n', filename)
+    mex(['-I' au_root_dir], filename);
+
+    [~,fn,~] = fileparts(filename);
+    
+    
+    % Check we're not calling an old one on the path...
+    d = dir(which(fn)); 
+    mex_file_age_in_seconds = (now - datenum(d.date))*24*60*60;
+    au_test_assert mex_file_age_in_seconds<5
+        
+    fprintf('au_autodiff_generate: testing... [%s]\n', fn)
+    val_f = function_handle(example_arguments, example_data);
+    val_mex = feval(fn, example_arguments(:), example_data(:));
+    
+    au_test_equal val_f val_mex(1:n) 1e-8
 end

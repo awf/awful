@@ -22,7 +22,7 @@ principal_point = params(8:9);
 kappa = params(10:11);
 X = params(12:15);
 
-R = mlp_rodrigues(rot);
+R = au_rodrigues(rot);
 X = X(1:3)/X(4);
 C = R * X + trans;
 pi = @(X) X(1:end-1)/X(end);

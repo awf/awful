@@ -3,6 +3,8 @@ function au_assert_equal(expr1,expr2,tol,verbose)
 %             au_assert_equal('det(M)','0'[,TOLERANCE][,VERBOSE]);
 %             TOLERANCE < 0 means relative tolerance of
 %              abs(TOLERANCE) * max(abs(EXPR1) + abs(EXPR2))
+%             NaNs are assumed unequal, as it's consistent with isequal,
+%             and it's often useful to be told there are nans...
 
 if nargin == 0
   % unit test

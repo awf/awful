@@ -45,3 +45,7 @@ fail()
 
 au_test_equal rand(3,4) rand(3,4) 1e-6
 fail()
+
+au_test_assert true
+au_test_assert false
+fail()

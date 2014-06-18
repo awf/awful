@@ -3,6 +3,7 @@ function [R, dRdw] = au_rodrigues(axis, angle, slow)
 % AU_RODRIGUES  Convert axis/angle representation to rotation
 %               R = AU_RODRIGUES(AXIS*ANGLE)
 %               R = AU_RODRIGUES(AXIS, ANGLE)
+%               This is deigned to be fast primarily if used with au_autodiff
 
 % awf, apr07
 if nargin == 0
@@ -103,16 +104,17 @@ w3 = w(3);
 t2 = w2*w2;
 t3 = w1*w1;
 t4 = w3*w3;
-t5 = t2+t3+t4;
-if t5 == 0
-    R = eye(3);
-    dRdw = zeros(3,3,3);
-    % double(subs(diff(R, w0), {w0,w1,w2}, {0,0,1e-5}))
-    dRdw(:,:,1) = [ 0  0 0; 0 0 -1;  0 1 0 ];
-    dRdw(:,:,2) = [ 0  0 1; 0 0  0; -1 0 0 ];
-    dRdw(:,:,3) = [ 0 -1 0; 1 0  0;  0 0 0 ];
-    return
-end
+t5 = t2+t3+t4 + eps;
+% Lose this for autodiff -- adding eps makes it straight-line code...
+% if t5 == 0
+%     R = eye(3);
+%     dRdw = zeros(3,3,3);
+%     % double(subs(diff(R, w0), {w0,w1,w2}, {0,0,1e-5}))
+%     dRdw(:,:,1) = [ 0  0 0; 0 0 -1;  0 1 0 ];
+%     dRdw(:,:,2) = [ 0  0 1; 0 0  0; -1 0 0 ];
+%     dRdw(:,:,3) = [ 0 -1 0; 1 0  0;  0 0 0 ];
+%     return
+%end
 
 %%
 t7 = sqrt(t5);

@@ -25,6 +25,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     mlx_array<double> data(ins[1]);
 
     mlx_assert(in.cols == data.cols);
+    mlx_assert(in.rows == @InRows);
+    mlx_assert(data.rows == @DataRows);
 
     mlx_make_array<double> out(@OutRows, in.cols);
 

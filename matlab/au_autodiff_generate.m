@@ -26,7 +26,10 @@ if nargin == 0
     out = au_autodiff_generate_test([p p p], zeros(0,3));
     out_val = out(1:2,1)
     out_jac = reshape(out(3:end,1), 2, 3)
-    
+
+    au_test_should_fail o=au_autodiff_generate_test(rand(4,1),zeros(0,1))
+    au_test_should_fail o=au_autodiff_generate_test(rand(3,1),zeros(2,1))
+
     return
 end
 
@@ -97,6 +100,8 @@ end
 template = char(template');
 template = strrep(template, '@VarName', varname);
 template = strrep(template, '@Body', body);
+template = strrep(template, '@InRows', num2str(m));
+template = strrep(template, '@DataRows', num2str(md));
 template = strrep(template, '@OutRows', num2str(size(out,1)));
 
 fprintf(fd, '%s', template);
@@ -110,8 +115,7 @@ if ischar(filename)
     mex(['-I' au_root_dir], filename);
 
     [~,fn,~] = fileparts(filename);
-    
-    
+        
     % Check we're not calling an old one on the path...
     d = dir(which(fn)); 
     mex_file_age_in_seconds = (now - datenum(d.date))*24*60*60;

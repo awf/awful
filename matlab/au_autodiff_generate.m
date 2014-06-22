@@ -20,15 +20,16 @@ if nargin == 0
     p = [1 2 3]';
     f(p)
     
-    au_autodiff_generate(f, p, [], 'c:/tmp/au_autodiff_generate_test.cpp');
+    au_autodiff_generate(f, p, [], 'c:/tmp/au_autodiff_generate_test_mex.cpp');
  
     % Check it exists and is callable
-    out = au_autodiff_generate_test([p p p], zeros(0,3));
-    out_val = out(1:2,1)
-    out_jac = reshape(out(3:end,1), 2, 3)
+    do_jacobian = true;
+    out = au_autodiff_generate_test_mex([p p p], zeros(0,3), do_jacobian);
+    out_val = out(1,:)
+    out_jac = out(2:end,:)
 
-    au_test_should_fail o=au_autodiff_generate_test(rand(4,1),zeros(0,1))
-    au_test_should_fail o=au_autodiff_generate_test(rand(3,1),zeros(2,1))
+    au_test_should_fail o=au_autodiff_generate_test_mex(rand(4,1),zeros(0,1),false)
+    au_test_should_fail o=au_autodiff_generate_test_mex(rand(3,1),zeros(2,1),false)
 
     return
 end
@@ -37,6 +38,7 @@ if nargin < 4
     filename = [];
 end
 
+%% Determine sizes etc
 au_assert size(example_arguments,2)==1
 out = function_handle(example_arguments, example_data);
 au_assert size(out,2)==1
@@ -45,6 +47,7 @@ m = size(example_arguments,1);
 n = size(out,1);
 md = size(example_data,1);
 
+%% Make symbolic variables and push them through.
 in = sym('x', [m 1]);
 sym(in, 'real');
 data = sym('data', [md 1]);
@@ -55,21 +58,30 @@ out_val = function_handle(in, data);
 fprintf('au_autodiff_generate: computing jacobian\n');
 out_jac = jacobian(out_val, in);
 
-out = [out_val; out_jac(:)];
+out = [out_val out_jac]';
+
 % awf xxfixme: handle symbolic sparsity find(~(out_all == 0))
 
-s = '';
+%% Now wrap the computation in au_autodiff_generate_template.cpp
+decls = '';
 for k=1:m
-    s= [s sprintf('    double x%d = in_ptr[%d];\n', k, k-1)];
+    decls= [decls sprintf('    double x%d = in_ptr[%d];\n', k, k-1)];
 end
 for k=1:md
-    s= [s sprintf('    double data%d = data_ptr[%d];\n', k, k-1)];
+    decls= [decls sprintf('    double data%d = data_ptr[%d];\n', k, k-1)];
 end
-fprintf('au_autodiff_generate: computing ccode\n');
-str = [s au_ccode(out)];
-str = strrep(str, '[0 * out_rows + ', '[');
+fprintf('au_autodiff_generate: computing ccode for do_jacobian=0\n');
+BodyNoJac = [decls au_ccode(out_val)];
+BodyNoJac = strrep(BodyNoJac, '[0 * out_rows + ', '[');
+
+tic
+fprintf('au_autodiff_generate: computing ccode for do_jacobian=1\n');
+BodyJacobian = [decls au_ccode(out)];
+BodyJacobian = strrep(BodyJacobian, '[0 * out_rows + ', '[');
+codegen_time = toc;
 
 if isempty(filename)
+    str = BodyJacobian;
     return
 end
 
@@ -84,8 +96,10 @@ else
     fprintf('au_autodiff_generate: writing file [fd=%d]\n', fd);
 end
 
-body = '  /* inner loop */';
-body = sprintf('%s\n%s', body, str);
+body0 = '  /* inner loop do_jac=0 */';
+body0 = sprintf('%s\n%s', body0, BodyNoJac);
+body1 = '  /* inner loop do_jac=1 */';
+body1 = sprintf('%s\n%s', body1, BodyJacobian);
 
 % Get Template Text
 tfd = fopen([au_root_dir '/au_autodiff_generate_template.cpp'], 'r');
@@ -99,8 +113,10 @@ end
 
 template = char(template');
 template = strrep(template, '@VarName', varname);
-template = strrep(template, '@Body', body);
+template = strrep(template, '@BodyNoJac', body0);
+template = strrep(template, '@BodyJacobian', body1);
 template = strrep(template, '@InRows', num2str(m));
+template = strrep(template, '@OutDim', num2str(n));
 template = strrep(template, '@DataRows', num2str(md));
 template = strrep(template, '@OutRows', num2str(size(out,1)));
 
@@ -123,7 +139,14 @@ if ischar(filename)
         
     fprintf('au_autodiff_generate: testing... [%s]\n', fn)
     val_f = function_handle(example_arguments, example_data);
-    val_mex = feval(fn, example_arguments(:), example_data(:));
+    val_mex = feval(fn, example_arguments(:), example_data(:), true);
     
-    au_test_equal val_f val_mex(1:n) 1e-8
+    val_f = val_f(:)';
+    au_test_equal val_f val_mex(1,:) 1e-8
+
+    J = val_mex(2:end,:)';
+    f_dc = @(x) feval(fn, x, example_data(:), false)';
+    timeout = max(2, codegen_time/10);
+    au_check_derivatives(f_dc, example_arguments(:), J, 1e-6, 1e-6, timeout);
 end
+

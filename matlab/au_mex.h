@@ -23,7 +23,7 @@
 // Assert macro.
 // This is not disabled by optimization -- if you want to make an assert
 // in a tight loop, wrap it in #ifdef MLX_DEBUG
-#define mlx_assert(expr) if (expr) 0; else mexErrMsgTxt("Assertion failed: " ## #expr)
+#define mlx_assert(expr) if (expr) 0; else mexErrMsgTxt("mlx_assert failed: " ## #expr)
 
 
 // ----------------------------------------------------------------------------
@@ -32,7 +32,8 @@
 // Declare mlx_class_id(T*), mapping from declared types, e.g. mlx_int32, or int32_T, to classid
 #define DECLARE_MEX_CLASS(ID, matlab_type, ctype) \
   typedef ctype mlx_ ## matlab_type; \
-  inline mxClassID mlx_class_id(mlx_ ## matlab_type *) { return ID; }
+  inline mxClassID mlx_class_id(mlx_ ## matlab_type *) { return ID; }\
+  inline char const* mlx_class_name(mlx_ ## matlab_type *) { return # matlab_type; }
  
 /* Declares:
 typedef ... mlx_int8;  // mlx_int8 is the C++ type stored in a MATLAB int8
@@ -126,7 +127,7 @@ struct mlx_array {
     ok = (a) && (mxGetClassID(a) == matlab_class_id);
     if (!ok) 
         if (throw_on_type_mismatch && a)
-            mexErrMsgIdAndTxt("awful:bad_cast", "Unexpected datatype [%s]", mxGetClassName(a));
+            mexErrMsgIdAndTxt("awful:bad_cast", "mlx_array<%s>: Bad cast from [%s]", mlx_class_name((T*)0), mxGetClassName(a));
         else
             return; // Return silently, caller can check flag;
     
@@ -249,7 +250,7 @@ struct mlx_inputs {
     mxArray const* operator[](int i) {
         mlx_assert(i >= 0);
         if (i >= nrhs)
-            mexErrMsgIdAndTxt("awful:nin", "Expected at least %d input arguments", i+1);
+            mexErrMsgIdAndTxt("awful:nin", "mlx_inputs: Expected at least %d input arguments", i+1);
         return prhs[i];
     }
 };
@@ -296,7 +297,7 @@ struct mlx_outputs {
     {
         mlx_assert(i >= 0);
         if (i > 0 && i >= nlhs)
-            mexErrMsgIdAndTxt("awful:nout", "Expected at least %d output arguments", i+1);
+            mexErrMsgIdAndTxt("awful:nout", "mlx_outputs: Expected at least %d output arguments", i+1);
         return mlx_output(&plhs[i]);
     }
 };

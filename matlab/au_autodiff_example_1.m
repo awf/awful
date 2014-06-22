@@ -13,18 +13,15 @@ if nargin == 0
     tic
     au_autodiff_generate(@au_autodiff_example_1, params, data, 'c:/tmp/au_autodiff_example_1_mex.cpp');
     toc
-    disp c:/tmp/au_autodiff_example_1_mex.cpp
-    mex -I. c:/tmp/au_autodiff_example_1_mex.cpp
     
-    % evaluate many terms in one call
+    
+    %% evaluate many terms in one call
     nterms = 3;
     allparams = rand(14,nterms);
     alldata = rand(2,nterms);
-    out = au_autodiff_example_1_mex(allparams,alldata);
-    for col = 1:1
-        residual = out(1:2,col)
-        J = reshape(out(3:end,col), 2, 14)
-    end
+    out = au_autodiff_example_1_mex(allparams,alldata,true);
+    residuals = out(1,:)
+    J = out(2:end,:)
     return
 end
 

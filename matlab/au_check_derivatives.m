@@ -9,9 +9,10 @@ if nargin == 0
     jac = @(x1,x2) ...
         [   x1/(x1^2 + x2^2)^(1/2),   x2/(x1^2 + x2^2)^(1/2)
         3*x1*(x1^2 + x2^2)^(1/2), 3*x2*(x1^2 + x2^2)^(1/2)];
-    disp('Should be silent...');
     au_check_derivatives(f, [.2 .3]', jac(.2, .3));
-    disp('was it?');
+    fprintf('Should be silent [...');
+    au_check_derivatives(f, [.2 .3]', jac(.2, .3), 1e-5, 1e-5, inf, 0);
+    disp('] was it?');
     au_test_should_fail au_check_derivatives(f,[.2,.3]',jac(.2, .31))
     return
 end
@@ -57,9 +58,12 @@ for ki=1:p
     emax = max(emax, err);
     if etime(clock, t) > timeout
         if verbose
-            fprintf('timeout, checked %d]', ki);
+            fprintf('timeout, checked %d]\n', ki);
         end
         break
     end
+end
+if verbose
+    fprintf('all OK\n');
 end
 %au_assert_equal('fdJ', 'J', tol)

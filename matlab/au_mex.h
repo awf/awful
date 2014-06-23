@@ -274,7 +274,6 @@ struct mlx_output {
     }
     
     // Assign from mxArray*
-    template <class T>
     mlx_output& operator=(mxArray* that) {
         *array_ptr = that;
         return *this;

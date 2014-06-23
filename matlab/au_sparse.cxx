@@ -20,27 +20,11 @@
 
 #define APRINTF if (!AWFDEBUG) 1; else mexPrintf 
 
-void mexFunction(
-        int nlhs,       mxArray *plhs[],
-        int nrhs, const mxArray *prhs[]
-        )
+void mlx_function(mlx_inputs& in, mlx_outputs& out)
 {
-  /* Check for proper number of input and output arguments. */    
-  if(nrhs != 3) {
-    mexErrMsgTxt("awf_sparse: 3 input arguments required.");
-  } 
-  if(nlhs > 1) {
-    mexErrMsgTxt("Too many output arguments.");
-  }
-
-  mlx_cast<mlx_int32> pi(prhs[0]);
-  if (!pi) mexErrMsgTxt("Input argument 1 must be of type int32.");
-
-  mlx_cast<mlx_int32> pj(prhs[1]);
-  if (!pj) mexErrMsgTxt("Input argument 2 must be of type int32.");
-  
-  mlx_cast<mlx_double> pv(prhs[2]);
-  if (!pv) mexErrMsgTxt("Input argument 3 must be of type double.");
+  mlx_array<mlx_int32> pi(in[0]);
+  mlx_array<mlx_int32> pj(in[1]);
+  mlx_array<mlx_double> pv(in[2]);
   
   /* Get the size and pointers to input data. */
   mlx_assert(pi.rows * pi.cols == pj.rows * pj.cols);
@@ -92,13 +76,15 @@ void mexFunction(
     mexErrMsgTxt("awf_sparse: documentation requires nzmax < rows*cols");
   }
   
-  plhs[0] = mxCreateSparse(rows,cols,nzmax,mxREAL);
-  mlx_double* sv  = mxGetPr(plhs[0]); // sparse values, so S(*ir, *jr) = *sv;
-  mwIndex* ir = mxGetIr(plhs[0]);  // row indices -- must be increasing colwise
-  mwIndex* jc = mxGetJc(plhs[0]);  // Column info -- size == cols+1
+  mxArray* sout = mxCreateSparse(rows,cols,nzmax,mxREAL);
+  mlx_double* sv  = mxGetPr(sout); // sparse values, so S(*ir, *jr) = *sv;
+  mwIndex* ir = mxGetIr(sout);  // row indices -- must be increasing colwise
+  mwIndex* jc = mxGetJc(sout);  // Column info -- size == cols+1
 
   APRINTF("awf_sparse: size %dx%d nzmax %d\n", rows, cols, nzmax);
-
+  
+  out[0] = sout;
+  
   if (nzmax == 0)
     return;
 

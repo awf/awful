@@ -1,6 +1,6 @@
 function au_mexall
 d = cd;
-newdir = mlp_dirname(mfilename('fullpath'))
+[newdir,~,~] = fileparts(mfilename('fullpath'));
 
 try
     cd(newdir)

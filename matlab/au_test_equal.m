@@ -60,7 +60,7 @@ if ~eq
   else
     fprintf(2, '%s *FAILED* |%s - %s| < %g (ERR=%g)\n', hd, expr1, expr2, tol, err);
     if (numel(exprval1) < 10 || FORCE_PRINT)
-      m2s = @(x) mlp_mat2str(x, 3, 40);
+      m2s = @(x) au_mat2str(x, 3, 40);
       if ~strcmp(expr1, num2str(exprval1(:)'))
         fprintf(2, '   with %s = %s\n', expr1, m2s(exprval1));
       end

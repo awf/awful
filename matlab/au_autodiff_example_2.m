@@ -3,7 +3,7 @@ function r = au_autodiff_example_2(params, data)
 
 % Define problem using constants, so symbolic eval will see the problem
 % structure
-BIGMODEL = 1;
+BIGMODEL = 0;
 
 if BIGMODEL
     parents = [0 1 2 3 2 3 1 7 8 7];

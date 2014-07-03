@@ -15,18 +15,22 @@ that clashes of function names are avoided.
 
 *Printing and testing*
 !AU_PRMAT
+!AU_DEEP_PRINT
   AU_TEST*   Utilities for writing unit tests  
   AU_ASSERT* Easier assertions  
 !AU_ROSENBROCK
+!AU_RUN_TESTS
 
 *Optimization/Numerics*
 !AU_LEVMARQ
 !AU_RANSAC
-!AU_FMIN_PACK
+!AU_DEEP_VECTORIZE
+!AU_DEEP_UNVECTORIZE
 !AU_LOGSUMEXP
 
 *File I/O helpers*
 !AU_FSCAN_REGEXP
+!AU_STRIP_PATH
 
 *MEX helper*
 !AU_MEX

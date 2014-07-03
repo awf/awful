@@ -1,3 +1,4 @@
+% AU_RUN_TESTS  Run all tests in the library
 
 % Test the testing code
 au_test_test

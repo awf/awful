@@ -1,4 +1,4 @@
-function au_system(cmd, varargin)
+function au_system(varargin)
 % AU_SYSTEM   Issue system command with matlab-separated arguments
 %             The matlab system command requires you to generate a command
 %             string rather than passing separate arguments
@@ -6,19 +6,30 @@ function au_system(cmd, varargin)
 %             system('dir', '/w', '*.m') fails oddly
 %             au_system('dir', '/w', '*.m')  -> !dir "*.m"
 %             
+%             Specifically, it encases arguments in double quotes
+%             if they contain spaces or special characters, and
+%             generates a string that is passed to the OS command.
 
 if nargin == 0
     %% Test
-    au_system dir /w *.m
-    au_system('dir', '/w', 'c:\program files*')
+    if ispc
+        au_system dir /w *.m
+        au_system('dir', '/w', 'c:\program files*')
+        au_system('dir', '/w', '"c:\program files*"')
+    else
+        error('not tested on other os''s');
+    end
     return
 end
 
+cmd ='';
 for k=1:length(varargin)
     s = varargin{k};
-    if isempty(regexp(s, '^[a-zA-Z[]{}/:\\<>,.#''~@=-+_!£$%^*()]+$', 'once'))
+    noquote_needed_re = '^[a-zA-Z[]{}/:\\<>,.#''~@=-+_!£$%^*()]+$';
+    if isempty(regexp(s, noquote_needed_re, 'once')) && ...
+       isempty(regexp(s, '^"[^"]*"$', 'once')) 
         if regexp(s, '"')
-            error('Cannot handle " in arg...   you should just need single quotes');
+            error('Cannot handle inner " in args...');
         end
         s = ['"' s '"'];
     end

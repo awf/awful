@@ -4,7 +4,7 @@ function au_system(varargin)
 %             string rather than passing separate arguments
 %             For example,
 %             system('dir', '/w', '*.m') fails oddly
-%             au_system('dir', '/w', '*.m')  -> !dir "*.m"
+%             au_system('dir', '/w', '*.m')  -> !dir /w "*.m"
 %             
 %             Specifically, it encases arguments in double quotes
 %             if they contain spaces or special characters, and

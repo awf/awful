@@ -1,7 +1,15 @@
-function emax = au_check_derivatives(f,x,J,delta, tol, timeout, verbose)
+function emax = au_check_derivatives(f,x,J,varargin)
 % AU_CHECK_DERIVATIVES Finite-difference derivative check
-%     emax = au_check_derivatives(f,x,J[,delta[,tol]])
-%     Default delta = 1e-4, tol = 1e-7
+%     emax = au_check_derivatives(f,x,J, opts)
+%     With opts an au_opts structure defaulting to
+%         delta = 1e-4      -- Added to each element of x
+%         tol = 1e-7        -- Want derivatives accurate to this tolerance
+%         timeout = inf     -- Spend at most "timeout" seconds checking
+%         verbose = 1       -- Be verbose
+%         PatternOnly = 0   -- Used for checking JacobPattern
+%         
+
+% awf, jun13
 
 if nargin == 0
     %% Test case
@@ -17,27 +25,11 @@ if nargin == 0
     return
 end
 
-if nargin < 4
-    delta=1e-4;
-end
+opts = au_opts('delta=1e-4;tol=1e-7;timeout=inf;verbose=1;PatternOnly=0', varargin{:});
 
-if nargin < 5
-    tol=1e-7;
-end
-
-if nargin < 6
-    timeout = inf;
-end
-
-if nargin < 7
-    verbose = 1;
-end
-
-
-scale = 1/2/delta;
 [~,p] = size(J);
-if verbose
-    fprintf('au_check_derivatives: dim %d, time at most %.1f seconds...', p, timeout);
+if opts.verbose
+    fprintf('au_check_derivatives: dim %d, time at most %.1f seconds...', p, opts.timeout);
 end
 au_assert_equal p numel(x)
 % Check derivatives OK
@@ -48,22 +40,32 @@ ks = randperm(p);
 for ki=1:p
     k = ks(ki);
     e = zeros(size(x));
-    e(k) = delta;
+    e(k) = opts.delta;
+    scale = 1/((x(k)+e(k))-(x(k)-e(k)));
     fdJ(:,k) = (f(x+e) - f(x-e))*scale;
-    err = max(abs(fdJ(:,k) - J(:,k)));
-    if err > tol
+    % Used for checking JacobPattern
+    if opts.PatternOnly
+        fdJ(:,k) = fdJ(:,k) ~= 0;
+        err = max(fdJ(:,k) - J(:,k));
+    else
+        err = max(abs(fdJ(:,k) - J(:,k)));
+    end
+    if err > opts.tol
         err = full(err);
         error('awful:check_derivatives', 'au_check_derivatives: Error on parameter %d = %g', k, err);
     end
     emax = max(emax, err);
-    if etime(clock, t) > timeout
-        if verbose
-            fprintf('timeout, checked %d]\n', ki);
+    if etime(clock, t) > opts.timeout
+        if opts.verbose
+            fprintf('timeout, checked %d/%d]\n', ki, p);
         end
         break
     end
 end
-if verbose
+if opts.verbose
+    if opts.PatternOnly
+        fprintf(' %d/%d extra zeros in Pattern ', full(sum(J(:)-fdJ(:))), nnz(J));
+    end
     fprintf('all OK\n');
 end
 %au_assert_equal('fdJ', 'J', tol)

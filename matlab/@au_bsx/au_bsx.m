@@ -108,6 +108,11 @@ classdef au_bsx
         r = runbsx(@power, obj1, obj2);
       end
       
+      function r = mpower(obj1,obj2)
+         % MPOWER Implement obj1 ^ obj2 for bsx
+         r = runbsx(@mpower, obj1, obj2);
+      end % plus
+      
       % Binary maximum
       function r = max(obj1,obj2)
         r = runbsx(@max, obj1, obj2);

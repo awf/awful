@@ -5,7 +5,7 @@ function opts = au_opts(varargin)
 %          the varargs override them if necessary.   An existing opts
 %          struct can be one of the args, and its fields are also added
 %          with overwrite.
-%          Any value beginning with a digit is passed to str2double, 
+%          Any value beginning with a digit (or 'inf') is passed to str2double, 
 %          any other is left as a string.  
 %          To add more complex datatypes, use a struct.
 
@@ -36,7 +36,7 @@ for k=1:length(varargin)
             end
             val= n(1).val;
             field = n(1).field;
-            if regexp(val, '^\d')
+            if ~isempty(regexp(val, '^[0-9]')) || strcmp(val, 'Inf')
                 opts.(field) = str2double(val);
             else
                 opts.(field) = val;

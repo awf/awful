@@ -8,7 +8,7 @@ template <class Real>
 mlx_array<Real> Compute(mlx_array<Real> const& A, mlx_array<Real> const& B)
 {
    mlx_assert(A.size == B.size);// Check sizes match
-
+   
    mlx_make_array<Real> sum(A.size); // Make output array
 
    // Perform the operation

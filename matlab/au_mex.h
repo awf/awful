@@ -144,7 +144,9 @@ struct mlx_array {
     for(mwSize i = 1; i < size.n; ++i)
       numel_ *= size.dims[i];
 
-    mlx_assert(mxGetPi(a) == 0); // Don't handle complex yet.
+    // We don't handle complex yet.
+    if (mxGetPi(a) != 0)
+        mexErrMsgIdAndTxt("awful:nocomplex", "mlx_array<T>: We don't handle complex yet");
   }
   
   // 1-based put
@@ -162,6 +164,23 @@ struct mlx_array {
   }
   // 0-based get
   T const& get0(mwIndex r, mwIndex c) const {
+    return data[r + c*rows];
+  }
+  
+  // operator(int,int)
+  T& operator()(mwIndex r, mwIndex c, ...) {
+#ifndef AU_MEX_UNCHECKED
+    mlx_assert(r >= 0 && r < rows);
+    mlx_assert(c >= 0 && c < cols);
+#endif
+    return data[r + c*rows];
+  }
+
+  T const& operator()(mwIndex r, mwIndex c) const {
+#ifndef AU_MEX_UNCHECKED
+    mlx_assert(r >= 0 && r < rows);
+    mlx_assert(c >= 0 && c < cols);
+#endif
     return data[r + c*rows];
   }
 

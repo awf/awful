@@ -39,6 +39,33 @@ catch
   disp('au_sparse_test: nonmonotonic rows within columns failed as it ought to: ok')
 end
 
+%% Timings
+disp ***TIMINGS***
+rows = 1e6;
+cols = 1e5;
+n=3e7;
+
+tic
+R = au_sprand(rows, cols, n/(rows*cols));
+[ii,jj, v] = find(R);
+[~,inds] = sort(v);
+i = ii(inds);
+j = jj(inds);
+%fprintf('rand(nnz=%.4e) = %.2f sec\n', nnz(R), toc);
+%
+tic; 
+S = au_sparse(int32(ii),int32(jj),v); 
+fprintf('au_sparse(monotonic) = %.2f sec\n', toc);
+
+tic; 
+S = sparse(ii,jj,v); 
+fprintf('   sparse(monotonic) = %.2f sec\n', toc);
+
+tic
+S = sparse(i, j, v);
+fprintf('sparse(nonmonotonic) = %.2f sec\n', toc);
+
+
 function test(msg, Ma, Ms)
 EQUAL = full(all(all(Ma == Ms)));
 if EQUAL

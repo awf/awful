@@ -25,7 +25,7 @@ if nargin == 0
     return
 end
 
-opts = au_opts('delta=1e-4;tol=1e-7;timeout=inf;verbose=1;PatternOnly=0', varargin{:});
+opts = au_opts('delta=1e-4;tol=1e-7;timeout=60;verbose=1;PatternOnly=0', varargin{:});
 
 [~,p] = size(J);
 if opts.verbose

@@ -8,7 +8,7 @@ void mlx_function(mlx_inputs& in, mlx_outputs& out)
 
    mlx_make_array<double> sum(A.size); // Make output array
 
-   mlx_assert(A.size == B.size);
+   mlx_assert(A.size == B.size); // Check sizes are equal
    
    // Perform the operation
    for(mwSize i = 0; i < A.numel(); ++i)

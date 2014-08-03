@@ -36,7 +36,8 @@ for k=1:length(varargin)
             end
             val= n(1).val;
             field = n(1).field;
-            if ~isempty(regexp(val, '^[0-9]')) || strcmp(val, 'Inf')
+            if ~isempty(regexp(val, '^[0-9]', 'once')) ||...
+                    strcmpi(val, 'Inf')
                 opts.(field) = str2double(val);
             else
                 opts.(field) = val;

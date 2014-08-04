@@ -1,6 +1,6 @@
 /*==============================================================
 * awf_sparse.cxx
-*   Faster sparse()
+*   Faster sparse()  See au_sparse.m for more help.
 *
 * This is a MEX-file for MATLAB.  
 * Copyright (c) 1984-2000 The MathWorks, Inc.
@@ -32,14 +32,20 @@ void mlx_function(mlx_inputs& in, mlx_outputs& out)
   
   mwSize n = pi.rows * pi.cols;
 
-  // Find row/col size  
+  // Find row/col size
   mlx_int32 rows = 0;
   mlx_int32 cols = 0;
-  for(mwIndex i = 0; i < n; ++i) {
-    if (pi[i] > rows) rows = pi[i];
-    if (pj[i] > cols) cols = pj[i];
+  if (in.nrhs == 5) {
+      rows = mlx_array<mlx_double>(in[3]).get0(0,0);
+      cols = mlx_array<mlx_double>(in[4]).get0(0,0);
+  } else {
+      // Find maxima
+      for(mwIndex i = 0; i < n; ++i) {
+          if (pi[i] > rows) rows = pi[i];
+          if (pj[i] > cols) cols = pj[i];
+      }
   }
-
+  
   APRINTF("awf_sparse: size = [%d %d]\n", rows, cols);
 
   // Error check, and count number of nonzeros

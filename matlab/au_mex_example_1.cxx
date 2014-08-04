@@ -1,6 +1,8 @@
 #include "au_mex.h"
 
 // Declare mlx_function (C++ version of mexFunction)
+// Compare to 
+// https://awful.codeplex.com/SourceControl/latest#matlab/au_mex_example_1.cxx 
 void mlx_function(mlx_inputs& in, mlx_outputs& out)
 {
    mlx_array<mlx_double> A(in[0]); // Get input 0

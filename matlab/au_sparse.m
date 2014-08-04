@@ -4,7 +4,9 @@ function au_sparse(varargin)
 %           that the indices are in the correct order for Matlab's
 %           internal format (compressed sparse column), see
 %           http://www.mathworks.co.uk/help/matlab/math/accessing-sparse-matrices.html
-%           That means that in the call au_sparse(i,j,v):
+%           That means that in the call
+%              au_sparse(i,j,v)
+%           we require
 %           1. The columns j should be monotonic, i.e. all(diff(j)>= 0)
 %           2. The rows i should be monotonic within columns, i.e:
 %               all(diff(i(j==k))>0) forall k=1:max(j)

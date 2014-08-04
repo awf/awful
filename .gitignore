@@ -6,3 +6,11 @@ doc/Home.html
 doc/MatlabAllHelp.html
 matlab/Contents.m
 matlab/au_ccode_test_mex.cpp
+examples/optimization_tutorial/icvss_cauchy.eps
+examples/optimization_tutorial/icvss_cauchy.pdf
+examples/optimization_tutorial/icvss_exppdf.eps
+examples/optimization_tutorial/icvss_exppdf.pdf
+examples/optimization_tutorial/icvss_huberpdf.eps
+examples/optimization_tutorial/icvss_huberpdf.pdf
+examples/optimization_tutorial/icvss_log_p_gauss.eps
+examples/optimization_tutorial/icvss_log_p_gauss.pdf

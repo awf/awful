@@ -15,3 +15,5 @@ examples/optimization_tutorial/icvss_huberpdf.pdf
 examples/optimization_tutorial/icvss_log_p_gauss.eps
 examples/optimization_tutorial/icvss_log_p_gauss.pdf
 matlab/html/au_levmarq.html
+AuDotNet/bin/*
+AuDotNet/obj/*

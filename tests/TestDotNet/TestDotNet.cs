@@ -77,7 +77,7 @@ namespace TestDotNet
             // Check GetVisualStudioInstanceBySolution to see that when asked for this solution, it returns one
             // containing a project named "TestDotNet"
             {
-                EnvDTE.Solution sln = Au.DesignTime.GetVisualStudioInstanceBySolution(@"\\awf-utils\.sln");
+                EnvDTE.Solution sln = Au.DesignTime.GetVisualStudioInstanceBySolution(@"\\awful\.sln");
                 Au.Test.Assert(() => sln != null);
                 Au.Test.Assert(() => sln.Projects.Cast<EnvDTE.Project>().Any(p => p.Name == "TestDotNet"));
             }

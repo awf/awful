@@ -93,7 +93,7 @@ if opts.CHECK_JACOBIAN
     timeout = opts.CHECK_JACOBIAN;
     x_fd_check = x + rand(size(x))*1e-4;
     [~,J] = func(x_fd_check ); 
-    emax = au_check_derivatives(func,x_fd_check,J,1e-5, 1e-5, timeout);
+    emax = au_check_derivatives(func,x_fd_check,J,1e-5, 1e-5, timeout, 'verbose=0');
     fprintf(' emax = %g, norm(x) = %g\n', full(emax), norm(x));
 end
 
@@ -231,7 +231,8 @@ while true
         fminbnd_options.Display = 'off';
         
         % Execute linmin
-        [t,f_test,~,fminbnd_output] = fminbnd(f1d, .2, 10, fminbnd_options);
+        LINMIN_MIN = 0.001;  % awf, aug14, don't allow to make tiny steps, but reduced from 0.2
+        [t,f_test,~,fminbnd_output] = fminbnd(f1d, LINMIN_MIN, 10, fminbnd_options);
         x_test = x + t * dx;
         e_test = func(x_test);
         f_disp = opts.DisplayErr(e_test);

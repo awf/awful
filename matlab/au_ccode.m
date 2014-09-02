@@ -36,9 +36,10 @@ vars = symvar(symobj);
 
 % Now do common subexpression elimination if required
 if DO_CSE
+    symobj0 = symobj;
     t=clock;
     fprintf('cse, ');
-    symobj = feval(symengine, 'generate::optimize', symobj);
+    symobj = feval(symengine, 'generate::optimize', symobj0);
     fprintf('[%.1fsec]', etime(clock,t));
 end
 fprintf('C, ');
@@ -49,9 +50,19 @@ cstring = strrep(char(c), '\n', sprintf('\n'));
 % Replace "t454 = " with "double t454 ="
 cstring = regexprep(cstring, '\<(\w+) =', '  double $&');
 
-% Replace "t343[r][c] =" with "t343[c * out_rows + r];
-cstring = regexprep(cstring, '\<(\w+)\[(\d+)\]\[(\d+)\] =', ...
+% Replace "t343[r][c] =" with "out_ptr[c * out_rows + r];
+if out_rows * out_cols == 1
+    % Singleton input produces rather different ccode, the last assignment
+    % is the output-setter
+    [startindex, endindex] = regexp(cstring, '\<double t[01] = ');
+    cstring = [cstring(1:startindex(end)-1) ...
+        'out_ptr[0] =' cstring(endindex(end):end)];
+else
+    % Vector input is easy to pattern-match, the [][] identify the output
+    % assignments
+    cstring = regexprep(cstring, '\<(\w+)\[(\d+)\]\[(\d+)\] =', ...
     'out_ptr[$3 * out_rows + $2] =');
+end
 
 %% Return if not writing to file
 if isempty(filename)

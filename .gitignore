@@ -18,3 +18,4 @@ AuDotNet/bin/
 AuDotNet/obj/
 tests/**/bin/
 tests/**/obj/
+examples/autodiff/example_gmm_objective_mex.cxx

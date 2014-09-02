@@ -40,5 +40,7 @@ elseif isstruct(obj)
 else
     % Everything else should be numeric
     num_used = numel(obj);
-    obj(:) = x(1:num_used);
+    % Assign to inputobj, using reshape rather than colon-assign, as may
+    % want datatype to match x rather than obj
+    obj = reshape(x(1:num_used), size(obj));
 end

@@ -37,6 +37,11 @@ if nargin == 0
     au_test_equal n length(x1)
     au_test_equal obj obj1
     
+    sx = sym('x', size(x1));
+    au_test_assert isa(sx,'sym')
+    out = au_deep_unvectorize(obj, sx);
+    au_test_assert isa(out(1).a,'sym')
+    
     return
 end
 

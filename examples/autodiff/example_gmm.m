@@ -63,9 +63,4 @@ for k=1:K
   mahal = L*(mus(:,k) - x);
   lse(k) = alphas(k) + sum(diag(L0)) - 0.5*(mahal'*mahal);
 end
-if isa(lse, 'sym')
-    nll = au_logsumexp(lse) - au_logsumexp(alphas);
-else
-    logsumexp = @(x) log(sum(exp(x)));
-    nll = logsumexp(lse) - logsumexp(alphas);
-end
+nll = au_logsumexp(lse) - au_logsumexp(alphas);

@@ -1,25 +1,6 @@
-function nll = example_gmm(alphas, mus, Ls, x)
-% EXAMPLE_GMM  Evaluate GMM negative log likelihood for a single point x
-%      Inverse covariance lower triangular roots are in dxdxK array Ls.
-%      That means kth covariance matrix is inv(Ls(:,:,k)*Ls(:,:,k)')
-%      This will be mexed by au_ccode, so doesn't need to be super fast.
-%      Answer is scaled by (2*pi)^d/2
 
+%% Test GMM example
 
-% weight[k] = exp(alphas[k])/sum(exp(alphas))
-% mahal[k] = Ls[k]*(mus[k] - x)
-% log(sum_k weight[k] * det(Ls[k]) * exp(-0.5*sumsq(mahal[k])))
-% =log(sum_k exp(alphas[k])/sum(exp(alphas)) * exp(log(det(Ls[k])) * exp(-0.5*sumsq(mahal_k)))
-% =log(1/sum(exp(alphas)) * sum_k { exp(alphas[k]) * exp(log(det(Ls[k])) * exp(-0.5*sumsq(mahal_k)))
-% =log(1/sum(exp(alphas)) * sum_k exp(alphas[k]) + log(det(Ls[k])) - 0.5*sumsq(mahal_k)))
-% =-log(sum(exp(alphas)) + 
-%       log(sum_k exp(alphas[k] + log(det(Ls[k])) - 0.5*sumsq(mahal_k)))
-% =-log(sum(exp(alphas)) + 
-%       log(sum_k exp(alphas[k] + log(prod(diag(Ls[k]))) - 0.5*sumsq(mahal_k)))
-% =-log(sum(exp(alphas)) + 
-%       log(sum_k exp(alphas[k] + log(prod(exp(diag(Ls0[k])))) - 0.5*sumsq(mahal_k)))
-% =-log(sum(exp(alphas)) + 
-%       log(sum_k exp(alphas[k] + sum(diag(Ls0[k])) - 0.5*sumsq(mahal_k)))
 
 if nargin == 0
     %% test

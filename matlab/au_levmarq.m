@@ -1,4 +1,4 @@
-function [x, f, log_data] = au_levmarq(x, func, opts)
+function [x, f, log_data, iters] = au_levmarq(x, func, opts)
 
 % AU_LEVMARQ    Home-grown LM with line search
 %               [x, J, log] = au_levmarq(x, f, opts)

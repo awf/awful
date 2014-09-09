@@ -19,3 +19,7 @@ AuDotNet/obj/
 tests/**/bin/
 tests/**/obj/
 examples/autodiff/example_gmm_objective_mex.cxx
+examples/robust_bundle_revisited/rba_figures.pdf
+examples/robust_bundle_revisited/rba_figures.eps
+examples/robust_bundle_revisited/fig_wfunc_bars.pdf
+examples/robust_bundle_revisited/fig_wfunc_bars.eps

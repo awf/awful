@@ -13,6 +13,8 @@ if nargin == 0
   return
 end
 
+global all_test_status
+
 if nargin < 2
     error('au_test_equal: need at least two arguments')
 end
@@ -55,6 +57,7 @@ else
 end
 
 if ~eq
+    au_test_result(0);
   if ~isnumeric(exprval1)
     fprintf(2, '%s\n', [hd ' FAILED: ' expr1 ' == ' expr2 ]);
   else
@@ -70,6 +73,7 @@ if ~eq
     end
   end
 else
+        au_test_result(1);
   if tol ~= 0
     fprintf(1, '%s passed: |%s - %s| < %g\n', hd, expr1, expr2, tol);
   else

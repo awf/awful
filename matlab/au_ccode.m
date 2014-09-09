@@ -39,7 +39,7 @@ if DO_CSE
     symobj0 = symobj;
     t=clock;
     fprintf('cse, ');
-    symobj = feval(symengine, 'generate::optimize', symobj0);
+    symobj = feval(symengine, 'generate::optimize', simplify(symobj0));
     fprintf('[%.1fsec]', etime(clock,t));
 end
 fprintf('C, ');

@@ -12,4 +12,4 @@ function au_sparse(varargin)
 %               all(diff(i(j==k))>0) forall k=1:max(j)
 
 % Mex is in au_sparse.cxx
-error('au_sparse: MEX file not found.  Pleae run au_mexall.\n'); 
+error('au_sparse: MEX file not found.  Pleae run au_mexall.\n');

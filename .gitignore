@@ -1,7 +1,7 @@
 *.vspscc
 *.suo
 *.mexw64
-*.maxa64
+*.mexa64
 *.mexmaci64
 *.asv
 *.au_bak

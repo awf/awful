@@ -25,28 +25,31 @@ if nargin < 3
     DO_CSE = 1;
 end
 
-fprintf('au_ccode: expr size= ');
-t=clock;
-l=length(char(symobj));
-fprintf('%.2fMB (took %.1f sec to measure), ', l/1024/1024, etime(clock,t))
+if 0
+  fprintf('au_ccode: expr size= ');
+  t=clock;
+  l=length(char(symobj));
+  fprintf('%.2fMB (took %.1f sec to measure), ', l/1024/1024, etime(clock,t))
+else
+  fprintf('au_ccode: symvars ');
+end
 
 % Capture symvars and size before CSE
 vars = symvar(symobj);
 [out_rows,out_cols] = size(symobj);
 
 % Now do common subexpression elimination if required
-DO_SIMPLIFY = 0;
+SIMPLIFY_TMAX = 0;
 if DO_CSE
     symobj0 = symobj;
     t=clock;
-    fprintf('cse, ');
-    if DO_SIMPLIFY
-      TMax = 3600;
-      symobj = simplify(symobj0, 'Seconds', TMax);
-      symobj = feval(symengine, 'generate::optimize', symobj);
-    else
-      symobj = feval(symengine, 'generate::optimize', symobj0);
+    if SIMPLIFY_TMAX > 0
+      fprintf('simplify ');
+      symobj0 = simplify(symobj0, 'Seconds', SIMPLIFY_TMAX);
+      fprintf('[%.1fsec], ', etime(clock,t));
     end
+    fprintf('cse ');
+    symobj = feval(symengine, 'generate::optimize', symobj0);
     fprintf('[%.1fsec]', etime(clock,t));
 end
 fprintf('C, ');

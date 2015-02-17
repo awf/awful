@@ -1,6 +1,5 @@
 function au_bsx_test
 % BSX_TEST Test the bsx class
-%#ok<*NASGU> unused vars in test_equal
 
 % "Import" the short name
 bsx = @au_bsx;
@@ -24,3 +23,4 @@ au_test_equal col.*m bsxfun(@times,col.val,m)
 au_test_equal col+m bsxfun(@plus,col.val,m)
 au_test_equal max(col,m) bsxfun(@max,col.val,m)
 au_test_equal min(col,m) bsxfun(@min,col.val,m)
+%#ok<*NASGU> unused vars in calls to au_test_equal

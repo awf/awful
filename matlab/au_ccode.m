@@ -35,11 +35,18 @@ vars = symvar(symobj);
 [out_rows,out_cols] = size(symobj);
 
 % Now do common subexpression elimination if required
+DO_SIMPLIFY = 0;
 if DO_CSE
     symobj0 = symobj;
     t=clock;
     fprintf('cse, ');
-    symobj = feval(symengine, 'generate::optimize', simplify(symobj0));
+    if DO_SIMPLIFY
+      TMax = 3600;
+      symobj = simplify(symobj0, 'Seconds', TMax);
+      symobj = feval(symengine, 'generate::optimize', symobj);
+    else
+      symobj = feval(symengine, 'generate::optimize', symobj0);
+    end
     fprintf('[%.1fsec]', etime(clock,t));
 end
 fprintf('C, ');

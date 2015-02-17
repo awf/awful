@@ -1,4 +1,4 @@
-function str = au_autodiff_generate(function_handle, example_arguments, example_data, filename)
+function str = au_autodiff_generate(function_handle, example_arguments, example_data, filename, DO_CSE)
 % AU_AUTODIFF_GENERATE  Generate code for function and derivatives
 %      To generate C code for a function and its jacobian, use
 %       STR = AU_AUTODIFF_GENERATE(FUNCTION_HANDLE, EXAMPLE_ARG, EXAMPLE_DATA)
@@ -38,6 +38,10 @@ if nargin < 4
     filename = [];
 end
 
+if nargin < 5
+  DO_CSE = 1;
+end
+
 %% Determine sizes etc
 au_assert size(example_arguments,2)==1
 out = function_handle(example_arguments, example_data);
@@ -55,10 +59,14 @@ sym(data, 'real');
 
 fprintf('au_autodiff_generate: making code for f:R^%d->R^%d\n', m, n);
 out_val = function_handle(in, data);
-fprintf('au_autodiff_generate: computing jacobian\n');
+fprintf('au_autodiff_generate: computing jacobian ... ');
+tic
 out_jac = jacobian(out_val, in);
-
-out = [out_val out_jac]';
+fprintf(' %.1fsec\n', toc);
+fprintf('au_autodiff_generate: transpose ... ');
+tic
+out = [out_val out_jac].';
+fprintf(' %.1fsec\n', toc);
 
 % awf xxfixme: handle symbolic sparsity find(~(out_all == 0))
 
@@ -71,12 +79,12 @@ for k=1:md
     decls= [decls sprintf('    double data%d = data_ptr[%d];\n', k, k-1)];
 end
 fprintf('au_autodiff_generate: computing ccode for do_jacobian=0\n');
-BodyNoJac = [decls au_ccode(out_val)];
+BodyNoJac = [decls au_ccode(out_val, [], DO_CSE)];
 BodyNoJac = strrep(BodyNoJac, '[0 * out_rows + ', '[');
 
 tic
 fprintf('au_autodiff_generate: computing ccode for do_jacobian=1\n');
-BodyJacobian = [decls au_ccode(out)];
+BodyJacobian = [decls au_ccode(out, [], DO_CSE)];
 BodyJacobian = strrep(BodyJacobian, '[0 * out_rows + ', '[');
 codegen_time = toc;
 
@@ -147,6 +155,6 @@ if ischar(filename)
     J = val_mex(2:end,:)';
     f_dc = @(x) feval(fn, x, example_data(:), false)';
     timeout = max(2, codegen_time/10);
-    au_check_derivatives(f_dc, example_arguments(:), J, 1e-6, 1e-4, timeout);
+    au_check_derivatives(f_dc, example_arguments(:), J, 'delta=1e-6;tol=1e-4', 'timeout', timeout);
 end
 

@@ -3,8 +3,13 @@ function au_test_begin(tag)
 
 global all_test_status
 
+if nargin == 0
+  tag = au_mfilename(-1);
+end
+
 fprintf(1, 'au_test_begin: start sequence [%s]\n', tag);
 
-all_test_status.ok = 0;
-all_test_status.failed = 0;
+status.ok = 0;
+status.failed = 0;
 
+all_test_status = status;

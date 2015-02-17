@@ -12,6 +12,9 @@ end
 out = {};
 while ~feof(f)
   l = fgetl(f);
+  if isequal(l, -1)
+    break
+  end
   strs = regexp(l, delim_re, 'split');
   
   if isempty(strs)

@@ -64,18 +64,18 @@ R = au_sprand(rows, cols, n/(rows*cols));
 fprintf('au_sprand(nnz=%.4e) = %.2f sec\n', nnz(R), toc);
 
 % Test au_sparse (should be fastest)
-tic; 
-S = au_sparse(int32(ii),int32(jj),v); 
+tic;
+S = au_sparse(int32(ii),int32(jj),v);
 fprintf('au_sparse(monotonic) = %.2f sec\n', toc);
 
 % Test sparse
-tic; 
-S = sparse(ii,jj,v); 
+tic;
+S = sparse(ii,jj,v);
 fprintf('   sparse(monotonic) = %.2f sec\n', toc);
 
 % Test spconvert
-tic; 
-S = spconvert([ii,jj,v]); 
+tic;
+S = spconvert([ii,jj,v]);
 fprintf('   spconvert(monotonic) = %.2f sec\n', toc);
 
 % Test sparse, with out-of-order indices

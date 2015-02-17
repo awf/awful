@@ -1,6 +1,8 @@
 *.vspscc
 *.suo
 *.mexw64
+*.mexa64
+*.mexmaci64
 *.asv
 *.au_bak
 doc/Documentation.html

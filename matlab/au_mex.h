@@ -143,11 +143,12 @@ struct mlx_array {
     mx_array = a;
     matlab_class_id = mlx_class_id((T*)0);
     ok = (a) && (mxGetClassID(a) == matlab_class_id);
-    if (!ok) 
+    if (!ok) {
         if (throw_on_type_mismatch && a)
             mexErrMsgIdAndTxt("awful:bad_cast", "mlx_array<%s>: Bad cast from [%s]", mlx_class_name((T*)0), mxGetClassName(a));
         else
             return; // Return silently, caller can check flag;
+    }
     
     // This is the correct type, set up the data
     data = (T*)mxGetData(a);
@@ -254,19 +255,19 @@ private:
     
     void create(mlx_dims const& size_)
     {
-        size = size_;
-        int *odims = (int *)mxMalloc(sizeof(int)*size.n);
-        numel_ = 1;
-	for(int i=0; i<size.n; i++) {
-            odims[i] = size.dims[i];
-	    numel_ *= odims[i];
+        this->size = size_;
+        int *odims = (int *)mxMalloc(sizeof(int)*this->size.n);
+        this->numel_ = 1;
+	for(int i=0; i<this->size.n; i++) {
+            odims[i] = this->size.dims[i];
+	    this->numel_ *= odims[i];
 	}
-        mx_array = mxCreateNumericArray(size.n, odims, 
-                matlab_class_id, mxREAL);
+        this->mx_array = mxCreateNumericArray(this->size.n, odims, 
+                this->matlab_class_id, mxREAL);
 
-        data = (T*)mxGetData(mx_array);
-        rows = (mwSize)mxGetM(mx_array);
-        cols = (mwSize)mxGetN(mx_array);
+        this->data = (T*)mxGetData(this->mx_array);
+        this->rows = (mwSize)mxGetM(this->mx_array);
+        this->cols = (mwSize)mxGetN(this->mx_array);
   }
 };
 

@@ -5,23 +5,19 @@ using System.Threading;
 using System.Windows.Threading;
 using System.Management;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.IO;
-using Microsoft.Research.AuDotNet;
-using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Linq.Expressions;
+using System.Windows.Media.Imaging;
 
 using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
-using System.Windows.Media.Imaging;
-using System.Text.RegularExpressions;
+
+using Microsoft.Research.AuDotNet;
 
 namespace Microsoft.Research.AuDotNet
 {

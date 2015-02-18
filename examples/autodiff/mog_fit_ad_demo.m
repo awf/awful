@@ -21,7 +21,7 @@ awf_scatter(x,'k.')
 axis([0 1 0 1])
 drawnow
 
-K = ad_logmog_K;
+K = 4;
 
 GX = 1;
 

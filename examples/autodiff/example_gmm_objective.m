@@ -1,6 +1,7 @@
 function err = example_gmm_objective(params, data)
 % EXAMPLE_GMM_OBJECTIVE  Evaluate GMM negative log likelihood for one point
-%         First argument PARAMS stores GMM
+%      Answer is scaled by (2*pi)^d/2
+%      First argument PARAMS stores GMM
 %             params.log_alphas  
 %                vector of logs of mixture weights (unnormalized), so
 %                weights = exp(log_alphas)/sum(exp(log_alphas))
@@ -11,22 +12,23 @@ function err = example_gmm_objective(params, data)
 %                lower triangular square roots of inverse covariances
 %                log of diagonal is first d params
 %      To generate params given covariance C:
-%           L = chol(C)';
+%           L = inv(chol(C)');
 %           inv_cov_factor = [log(diag(L)); L(au_tril_indices(d,-1))]
 
 %      This will be mexed by au_ccode, so doesn't need to be super fast.
-%      Answer is scaled by (2*pi)^d/2
 
 % Derivation of nll
 % weight[k] = exp(alphas[k])/sum(exp(alphas))
 % Sigma[k] = inv(Ls[k]'*Ls[k])
 % mahal2[k] = (mus[k] - x)'*inv(Sigma[k])*(mus[k] - x)
 % mahal[k] = Ls[k]*(mus[k] - x)
-% log(sum_k weight[k] * det(2*pi*Sigma[k])^-0.5 * exp(-0.5*sumsq(mahal[k])))
-% = log(sum_k weight[k] * det(Ls[k]) * exp(-0.5*sumsq(mahal[k])))
-% =log(sum_k exp(alphas[k])/sum(exp(alphas)) * exp(log(det(Ls[k])) * exp(-0.5*sumsq(mahal_k)))
-% =log(1/sum(exp(alphas)) * sum_k { exp(alphas[k]) * exp(log(det(Ls[k])) * exp(-0.5*sumsq(mahal_k)))
-% =log(1/sum(exp(alphas)) * sum_k exp(alphas[k]) + log(det(Ls[k])) - 0.5*sumsq(mahal_k)))
+% $$
+%   log(\sum_k w_k * det(2*pi*Sigma[k])^-0.5 * exp(-0.5*sumsq(mahal[k])))
+% ~ log(\sum_k w_k * det(Sigma[k])^-0.5 * exp(-0.5*sumsq(mahal[k])))
+% = log(\sum_k w_k * det(Ls[k]) * exp(-0.5*sumsq(mahal[k])))
+% = log(sum_k exp(alphas[k])/sum(exp(alphas)) * exp(log(det(Ls[k])) * exp(-0.5*sumsq(mahal_k)))
+% = log(1/sum(exp(alphas)) * sum_k { exp(alphas[k]) * exp(log(det(Ls[k])) * exp(-0.5*sumsq(mahal_k)))
+% = log(1/sum(exp(alphas)) * sum_k exp(alphas[k]) + log(det(Ls[k])) - 0.5*sumsq(mahal_k)))
 % =-log(sum(exp(alphas)) + 
 %       log(sum_k exp(alphas[k] + log(det(Ls[k])) - 0.5*sumsq(mahal_k)))
 % =-log(sum(exp(alphas)) + 
@@ -35,7 +37,7 @@ function err = example_gmm_objective(params, data)
 %       log(sum_k exp(alphas[k] + log(prod(exp(diag(Ls0[k])))) - 0.5*sumsq(mahal_k)))
 % =-log(sum(exp(alphas)) + 
 %       log(sum_k exp(alphas[k] + sum(diag(Ls0[k])) - 0.5*sumsq(mahal_k)))
-
+% $$
 
 
 if nargin == 0
@@ -63,6 +65,7 @@ if nargin == 0
     f = @(x,data) example_gmm_objective(unvec(x), data);
     f(x, data)
     
+    % Generate mex file to evaluate it
     au_autodiff_generate(f, x, data, 'example_gmm_objective_mex.cxx')
     return
 end

@@ -19,6 +19,7 @@ end
 d = size(X,2);
 
 npts = size(X,1);
+maxiter = 10;
 
 MeanX = mean(X);
 CovX = cov(X);
@@ -44,7 +45,7 @@ end
 
 old_w = zeros(npts,n);
 w = ones(npts,n);
-for count=1:1000
+for count=1:maxiter
 
   if count == 3
     moginit = mog;

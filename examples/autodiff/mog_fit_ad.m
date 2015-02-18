@@ -19,16 +19,14 @@ if GX
   end
 end
 
-
-d = size(x,2);
-au_assert_equal('d', 'ad_logmog_dim');
-K = ad_logmog_K;
+d = 2;
+K = 4;
 
 % Set mixing params
 params = 1/K * ones(K,1);
 
 % Set Gaussian params
-idx = find(tril(ones(d,d)));
+idx = au_tril_indices(d, -1);
 for k=1:K
   if nargin > 2
     L = chol(inv(mog_init(k).covariance))';
@@ -37,8 +35,9 @@ for k=1:K
     L = eye(d)*10; % chol(inv(mog_init(k).covariance))';
     mu = rand(d,1); % ;mog(k).mean(:);
   end
-  l = L(idx); %#ok<*FNDSB>
-  params = [params; l; mu]; %#ok<*AGROW>
+  ldiag = log(diag(L));
+  llt = L(idx); %#ok<*FNDSB>
+  params = [params; ldiag; llt; mu]; %#ok<*AGROW>
 end
 init_params = params;
 
@@ -48,7 +47,7 @@ fun = @(t) f(t,x,GX);
 
 fun(init_params);
 
-for algi = {'ls' }
+for algi = {'ms' }
   alg = algi{1};
   opts = optimset('fminunc');
   opts.Display = 'off';
@@ -85,7 +84,7 @@ for algi = {'ls' }
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  function [e,J,H] = f(theta, data, GX)
+  function [e,J] = f(theta, data, GX)
     persistent emin
     if nargin < 1
       % called with no arguments means initialization
@@ -93,7 +92,7 @@ end
       return
     end
     
-    K = ad_logmog_K;
+    K = 4;
     [n,d] = size(data);
     npg = d + d*(d+1)/2; % Number of parameters for each Gaussian
     np = K*npg + K; % Total number of parameters (including weights)
@@ -101,6 +100,8 @@ end
     params = repmat(theta(:),[1 n]);
     
     if 1
+      data(:,3) = 1;
+    else
       % Now add a column to data in order to condition the
       % log of sum of exponentials
       l=[];
@@ -113,17 +114,20 @@ end
     end
     
     % Compute data likelihoods
-    l_out = ad_logmog_mex(params,data');
+    l_out = example_gmm_objective_mex(params,data',true);
     S = sum(l_out,2) / n; % Divide by n to keep errors near unity for optimizers
     e = S(1); % Offset of 5 just to make printing pretty
+    hold off;
+    plot(l_out(1,:));
+
+    l_out = example_gmm_objective_mex(params,diag([1 1 -100])*data',true);
+    hold on
+    plot(l_out(1,:),'r.');
+
     if ~isfinite(e)
       keyboard
     end
     J = S(1+[1:np]);
-    if size(S,1) == np+1
-      error('ad_logmog_mex has no hessian -- re-run vgg_autodiff_make_code');
-    end
-    H = reshape(S(1+np+[1:np*np]), np,np);
     
     % Compute prior
     %e_prior = 0;

@@ -81,15 +81,19 @@ end
 fprintf('au_autodiff_generate: computing ccode for do_jacobian=0\n');
 BodyNoJac = [decls au_ccode(out_val, [], DO_CSE)];
 BodyNoJac = strrep(BodyNoJac, '[0 * out_rows + ', '[');
+str = BodyNoJac;
 
-tic
-fprintf('au_autodiff_generate: computing ccode for do_jacobian=1\n');
-BodyJacobian = [decls au_ccode(out, [], DO_CSE)];
-BodyJacobian = strrep(BodyJacobian, '[0 * out_rows + ', '[');
-codegen_time = toc;
+DO_JAC = 0;
+if DO_JAC
+  tic
+  fprintf('au_autodiff_generate: computing ccode for do_jacobian=1\n');
+  BodyJacobian = [decls au_ccode(out, [], DO_CSE)];
+  BodyJacobian = strrep(BodyJacobian, '[0 * out_rows + ', '[');
+  codegen_time = toc;
+  str = BodyJacobian;
+end
 
 if isempty(filename)
-    str = BodyJacobian;
     return
 end
 
@@ -106,8 +110,12 @@ end
 
 body0 = '  /* inner loop do_jac=0 */';
 body0 = sprintf('%s\n%s', body0, BodyNoJac);
-body1 = '  /* inner loop do_jac=1 */';
-body1 = sprintf('%s\n%s', body1, BodyJacobian);
+if DO_JAC
+  body1 = '  /* inner loop do_jac=1 */';
+  body1 = sprintf('%s\n%s', body1, BodyJacobian);
+else
+  body1 = 'mexErrMsgTxt("nojac");';
+end
 
 % Get Template Text
 tfd = fopen([au_root_dir '/au_autodiff_generate_template.cpp'], 'r');
@@ -147,14 +155,16 @@ if ischar(filename)
         
     fprintf('au_autodiff_generate: testing... [%s]\n', fn)
     val_f = function_handle(example_arguments, example_data);
-    val_mex = feval(fn, example_arguments(:), example_data(:), true);
+    val_mex = feval(fn, example_arguments(:), example_data(:), DO_JAC);
     
     val_f = val_f(:)';
     au_test_equal val_f val_mex(1,:) 1e-8
 
-    J = val_mex(2:end,:)';
-    f_dc = @(x) feval(fn, x, example_data(:), false)';
-    timeout = max(2, codegen_time/10);
-    au_check_derivatives(f_dc, example_arguments(:), J, 'delta=1e-6;tol=1e-4', 'timeout', timeout);
+    if DO_JAC
+      J = val_mex(2:end,:)';
+      f_dc = @(x) feval(fn, x, example_data(:), false)';
+      timeout = max(2, codegen_time/10);
+      au_check_derivatives(f_dc, example_arguments(:), J, 'delta=1e-6;tol=1e-4', 'timeout', timeout);
+    end
 end
 

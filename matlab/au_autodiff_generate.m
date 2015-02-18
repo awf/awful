@@ -57,12 +57,19 @@ sym(in, 'real');
 data = sym('data', [md 1]);
 sym(data, 'real');
 
-fprintf('au_autodiff_generate: making code for f:R^%d->R^%d\n', m, n);
-out_val = function_handle(in, data);
-fprintf('au_autodiff_generate: computing jacobian ... ');
 tic
-out_jac = jacobian(out_val, in);
-fprintf(' %.1fsec\n', toc);
+fprintf('au_autodiff_generate: making code for f:R^%d->R^%d ', m, n);
+out_val = function_handle(in, data);
+fprintf(' [%.1fsec]\n', toc);
+fprintf('au_autodiff_generate: computing jacobian ... ');
+times=[];
+for k=numel(in):-1:1
+  tic
+  out_jac(:,k) = diff(out_val, in(k));
+  times(k) = toc;
+  fprintf(' %d [%.1fsec]', k, times(k));
+end
+fprintf(' %.1fsec\n', sum(times));
 fprintf('au_autodiff_generate: transpose ... ');
 tic
 out = [out_val out_jac].';

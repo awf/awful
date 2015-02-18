@@ -83,7 +83,7 @@ BodyNoJac = [decls au_ccode(out_val, [], DO_CSE)];
 BodyNoJac = strrep(BodyNoJac, '[0 * out_rows + ', '[');
 str = BodyNoJac;
 
-DO_JAC = 0;
+DO_JAC = 1;
 if DO_JAC
   tic
   fprintf('au_autodiff_generate: computing ccode for do_jacobian=1\n');

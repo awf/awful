@@ -1,8 +1,9 @@
-function out = au_ccode(symobj, filename, DO_CSE)
+function out = au_ccode(symobj, filename, DO_CSE, SIMPLIFY_TMAX)
 % AU_CCODE    Generate optimized C code from symbolic expression.
 %             AU_CCODE(SYMEXPR) returns a string
 %             AU_CCODE(SYMEXPR, FILENAME) writes to FILENAME
 %             AU_CCODE(SYMEXPR, FILENAME, 0) turns off CSE
+%             AU_CCODE(SYMEXPR, FILENAME, 0, TMAX) stops simplify after TMAX seconds
 %             
 %          EXAMPLE:
 %             syms x y real
@@ -25,6 +26,10 @@ if nargin < 3
     DO_CSE = 1;
 end
 
+if nargin < 4
+    SIMPLIFY_TMAX = Inf;
+end
+
 if 0
   fprintf('au_ccode: expr size= ');
   t=clock;
@@ -38,19 +43,19 @@ end
 vars = symvar(symobj);
 [out_rows,out_cols] = size(symobj);
 
+% Simplify expression
+if SIMPLIFY_TMAX > 0
+  fprintf('simplify ');
+  symobj = simplify(symobj, 'Seconds', SIMPLIFY_TMAX);
+  fprintf('[%.1fsec], ', etime(clock,t));
+end
+
 % Now do common subexpression elimination if required
-SIMPLIFY_TMAX = 0;
 if DO_CSE
-    symobj0 = symobj;
-    t=clock;
-    if SIMPLIFY_TMAX > 0
-      fprintf('simplify ');
-      symobj0 = simplify(symobj0, 'Seconds', SIMPLIFY_TMAX);
-      fprintf('[%.1fsec], ', etime(clock,t));
-    end
-    fprintf('cse ');
-    symobj = feval(symengine, 'generate::optimize', symobj0);
-    fprintf('[%.1fsec]', etime(clock,t));
+  t=clock;
+  fprintf('cse ');
+  symobj = feval(symengine, 'generate::optimize', symobj);
+  fprintf('[%.1fsec]', etime(clock,t));
 end
 fprintf('C, ');
 c = feval(symengine, 'generate::C', symobj);

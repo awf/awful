@@ -1,4 +1,4 @@
-function au_assert_equal(expr1,expr2,tol,verbose)
+function au_assert_equal(varargin)
 % AU_ASSERT_EQUAL  Assert all(EXPR1 == EXPR2), print expr if not
 %             au_assert_equal('det(M)','0'[,TOLERANCE][,VERBOSE]);
 %             TOLERANCE < 0 means relative tolerance of
@@ -53,14 +53,45 @@ if nargin == 0
     disp(e.message);
     writeln(']]] that was the error message which should have been helpful:');
   end
-return
+  
+  writeln('This should fail 2% of the time:');
+  nfail = 0;
+  for k=1:1000
+    try
+      au_assert_equal -p 98 0 1;
+    catch e
+      nfail = nfail + 1;
+    end
+  end
+  fprintf('au_assert_equal: nfail = %d\n', nfail);
+  au_test_assert nfail>5&&nfail<40
+  
+
+  return
 end
 
-if nargin < 3
-  tol = 0;  % There is no other sensible default.
+args = varargin;
+if numel(args) >= 2 && strcmp(args{1}, '-p')
+  apply_prob = evalin('caller', args{2})/100;
+  if rand < apply_prob
+    return
+  end
+  args = args(3:end);
 end
-if nargin < 4
+
+expr1 = args{1};
+expr2 = args{2};
+
+if numel(args) < 3
+  tol = 0;  % There is no other sensible default.
+else
+  tol = args{3};
+end
+
+if numel(args) < 4
   verbose = 0;
+else
+  verbose = args{4};
 end
 
 if ischar(tol)

@@ -16,7 +16,7 @@ if nargin == 0
   a = randn(2,3);
   s = sum(a);
   au_assert_equal sum(a) s 0 1
-
+  
   writeln('This should fail:')
   a = randn(2,3);
   s = sum(a);
@@ -28,7 +28,7 @@ if nargin == 0
     writeln('Error message was:');
     disp(e.message);
   end
-
+  
   writeln('This should fail:')
   a = randn(3,20);
   s = sum(a);
@@ -40,7 +40,7 @@ if nargin == 0
     writeln('Error message should not print all values:');
     disp(e.message);
   end
-
+  
   writeln('This should fail:')
   a = randn(3,20);
   s = sum(a);
@@ -66,7 +66,7 @@ if nargin == 0
   fprintf('au_assert_equal: nfail = %d\n', nfail);
   au_test_assert nfail>5&&nfail<40
   
-
+  
   return
 end
 
@@ -133,10 +133,10 @@ if tol == 0 || isempty(exprval1) || isempty(exprval2)
 else
   % tol > 0
   if all(size(exprval1) == size(exprval2))
-      err = max(abs(exprval1(:) - exprval2(:)));
+    err = max(abs(exprval1(:) - exprval2(:)));
     iseq = err <= tol;
   else
-      err= inf;
+    err= inf;
     iseq = false;
   end
 end
@@ -146,7 +146,7 @@ if ~iseq
   v1 = [expr1 '=' nl v2str(exprval1) nl];
   v2 = [expr2 '=' nl v2str(exprval2) nl];
   sval = [v1 v2];
-  error('awful:assert', [sval 'au_assert_equal: FAILED: |' expr1 ' - ' expr2 '| = ' num2str(err) ' < tol [' num2str(tol) ']']);
+  error('awful:assert', [sval 'au_assert_equal: FAILED: |' expr1 ' - ' expr2 '| = ' num2str(err) ' <= tol [' num2str(tol) ']']);
 else
   if verbose
     disp(['au_assert_equal: PASSED: ' expr1 ' == ' expr2]);

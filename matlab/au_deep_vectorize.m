@@ -1,8 +1,16 @@
-function [x, unvec] = au_deep_vectorize(obj)
+function [x, unvec] = au_deep_vectorize(obj, varargin)
 % AU_DEEP_VECTORIZE Flatten arbitrary structure/cell a linear vector x.
 %         x = au_deep_vectorize(obj)
 %         obj1 = au_deep_unvectorize(obj, x) % use obj as a template
 %         au_assert_equal obj obj1
+%         Two different versions of the unvectorize function.
+%         If you ask for a second output argument you'll get a function
+%         handle which will unvectorize the argument.   But in 2015, this
+%         is a perf nightmare.  If the struct is more than say 500 deep,
+%         you'll just hang your machine incorrigibly.  In that case, pass a
+%         second argument which is the basename of the m-file you want
+%         created which will implement the correspomding unvec.  In many
+%         cases this is faster and still ok.  
 
 % awf, aug13
 
@@ -58,18 +66,19 @@ sz = size(obj);
 if iscell(obj)
     % Cell array
     x = [];
-    unvec = @(z) {};
+    unvec = '';
     for k=1:numel(obj)
       if need_unvec
-        [xk, unvec_k] = au_deep_vectorize(obj{k});
+        [xk, unvec_k] = au_deep_vectorize(obj{k}, varargin{:});
       else
-        xk = au_deep_vectorize(obj{k});
+        xk = au_deep_vectorize(obj{k}, varargin{:});
       end
       n = numel(x);
       nk = numel(xk);
       x = [x; xk];
       if need_unvec
-        unvec = @(z) au_cellappend(unvec(z(1:n)), unvec_k(z(n+(1:nk))));
+        unvec = [unvec; 
+           unvec_k(z(n+(1:nk)))];
       end
     end
     if need_unvec

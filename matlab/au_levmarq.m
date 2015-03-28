@@ -1,4 +1,4 @@
-function [x, f, log_data, iters] = au_levmarq(x, func, opts)
+function [x, f, log_data, endmsg] = au_levmarq(x, func, opts)
 
 % AU_LEVMARQ    Home-grown LM with line search
 %               [x, J, log] = au_levmarq(x, f, opts)
@@ -28,6 +28,7 @@ end
 if nargin == 1 && strcmp(x, 'opts')
   opts.MaxIter = Inf;      % Maximum number of outer iterations
   opts.MaxFunEvals = 1e6;  % Maximum numbre of function calls
+  opts.TimeOut = Inf;      % Timeout in seconds
   opts.Display = 'iter';   % Verbosity: none, final, final+, iter
   opts.CHECK_JACOBIAN = 3; % Seconds to spend checking derivatives.
   opts.USE_LINMIN = 0;     % Use a line search?
@@ -58,6 +59,8 @@ if nargin == 1 && strcmp(x, 'opts')
   opts.LAMBDA_DECREASE = 2;
   opts.LAMBDA_MAX = 1e8;
   opts.LAMBDA_INCREASE_BASE = 10;
+  
+  opts.TolFun = 1e-8;
   
   x = opts;
   return
@@ -118,6 +121,7 @@ log_data = [];
 funevals = 0;
 iter = 0;
 Id = speye(nparams);
+start_time = clock;
 while true
   % This outer loop is called for each Jacobian computation
   % We assume that computing J is an expensive operation so 
@@ -140,6 +144,11 @@ while true
   if iter > opts.MaxIter
       endmsg = '>MaxIter';
       break;
+  end
+  
+  if etime(clock, start_time) > opts.TimeOut
+    endmsg = '>TimeOut';
+    break
   end
 
   iter = iter + 1;
@@ -296,7 +305,7 @@ while true
   if size(log_data,1) > 10
     last_f = log_data(end, 2);
     mid_f = log_data(ceil(end/2), 2);
-    if abs(last_f - mid_f) < 1e-8*last_f
+    if abs(last_f - mid_f) < opts.TolFun*last_f
       endmsg = 'flatlined';
       break
     end

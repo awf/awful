@@ -76,10 +76,16 @@ else
   p = (n+1)*ones(n,1)-p;
   group = color(JacobPattern,p);
 
-  finDiffOpts.DiffMinChange = delta;
-  finDiffOpts.DiffMaxChange = delta;
+  if max(group) == n
+    % No point in sfdnls, and the call to finitedifferences in there hides
+    % exceptions thrown in f
+    J = au_jacobian_fd(f, x, [], delta);
+  else
+    finDiffOpts.DiffMinChange = delta;
+    finDiffOpts.DiffMaxChange = delta;
     
-  fx = f(x);
-  J = sfdnls(x,fx(:),JacobPattern,group,[],f,-inf+x, inf+x, ...
-    finDiffOpts,[],[]);
+    fx = f(x);
+    J = sfdnls(x,fx(:),JacobPattern,group,[],f,-inf+x, inf+x, ...
+      finDiffOpts,[],[]);
+  end
 end

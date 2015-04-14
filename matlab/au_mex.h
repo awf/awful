@@ -107,14 +107,6 @@ struct mlx_dims {
   }
 };
 
-struct mlx_size : public mlx_dims {
-  mwSize data[2];
-  mlx_size(mwSize rows, mwSize cols): mlx_dims(2, data) {
-    data[0] = rows;
-    data[1] = cols;
-  }
-};
-
 // Check dims for equality
 bool operator==(mlx_dims const& a, mlx_dims const& b)
 {

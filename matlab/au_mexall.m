@@ -1,16 +1,16 @@
 function au_mexall
-% AU_MEXALL  Mex all files in awful.
 d = cd;
 [newdir,~,~] = fileparts(mfilename('fullpath'));
 
-o = onCleanup(@(x) cd(d));
-
-cd(newdir)
-
-domex -I. au_quat2mat.cxx
-domex -I. au_rodrigues_mex.cxx
-domex -largeArrayDims au_sparse.cxx
-domex au_whist.cxx
+try
+    cd(newdir)
+    domex -largeArrayDims au_sparse.cxx
+    domex au_whist.cxx
+catch e
+    cd(d)
+    rethrow(e)
+end    
+cd(d)
 
 function domex(varargin)
 disp(au_reduce(@(x,y) [x ' ' y], varargin, 'mex'))

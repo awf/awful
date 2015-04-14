@@ -71,7 +71,7 @@ if nargin == 0
 end
 
 args = varargin;
-if numel(args) >= 2 && strcmp(args{1}, '-p')
+if numel(args) > 2 && strcmp(args{1}, '-p')
   apply_prob = evalin('caller', args{2})/100;
   if rand < apply_prob
     return
@@ -106,19 +106,19 @@ if ischar(expr1)
   exprval1 = evalin('caller',expr1);
 else
   exprval1 = expr1;
-  expr1 = inputname(1);
+  expr1 = 'EXP1';  % inputname(1) is slow, and almost never called with a simple input
 end
 
 if ischar(expr2)
   exprval2 = evalin('caller',expr2);
 else
   exprval2 = expr2;
-  expr2 = inputname(2);
+  expr2 = 'EXP2';
 end
 
-if isempty(expr1) || isempty(expr2)
-  error('awful:assert', 'Expression arguments must be strings to be evaluated, or named variables');
-end
+%if isempty(expr1) || isempty(expr2)
+%  error('awful:assert', 'Expression arguments must be strings to be evaluated, or named variables');
+%end
 
 if tol < 0
   % relative tolerance

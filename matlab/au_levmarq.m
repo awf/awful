@@ -11,7 +11,7 @@ function [x, f, log_data, endmsg] = au_levmarq(x, func, opts)
 %         
 %               OPTIONS:
 %               To get a default options structure, use
-%               OPTS = AU_LEVMARQ('OPTS');
+%               OPTS = AU_LEVMARQ('opts');
 %               EDIT AU_LEVMARQ  % to see options descriptions
 %
 %               LOG:
@@ -38,18 +38,19 @@ if nargin == 1 && strcmp(x, 'opts')
                            % is fast to invert using pcg.
   opts.USE_JTJ = 1;        % Form J'*J before solving
   opts.DECOMP_LU = 0;      % 1: backslash, 0: PCG
+  opts.DiffChange = 1e-5;  % Finite-difference delta
 
   % Function called each time f is called.
   opts.InnerIterFcn = @(x) [];  
 
   % Function called before each outer iteration,
   % just before f is called again.
-  % It is passed x, and may modify it before returning,
+  % It is passed x, and the return value is assigned to x,
   % E.g. to re-center.
   opts.IterStartFcn = @(x) x;
   
   % Function called after each reduction in f,
-  opts.PlotFcn = @(x, fval) [];
+  opts.PlotFcn = @(x, e, iters, lambda) [];
 
   % How to display the scalar error
   opts.DisplayErr = @(e) sum(e.^2);
@@ -57,7 +58,7 @@ if nargin == 1 && strcmp(x, 'opts')
   % Levenberg-Marquardt parameters.  
   opts.LAMBDA_MIN = 1e-12; 
   opts.LAMBDA_DECREASE = 2;
-  opts.LAMBDA_MAX = 1e8;
+  opts.LAMBDA_MAX = 1e10;
   opts.LAMBDA_INCREASE_BASE = 10;
   
   opts.TolFun = 1e-8;
@@ -91,23 +92,25 @@ x = x(:);
 % Call function
 nparams = length(x);
 
+e=[];
+
 %% Optionally check the Jacobian
 if opts.CHECK_JACOBIAN
-    timeout = opts.CHECK_JACOBIAN;
     x_fd_check = x + rand(size(x))*1e-4;
-    [~,J] = func(x_fd_check ); 
-    emax = au_check_derivatives(func,x_fd_check,J,1e-5, 1e-5, timeout, 'verbose=0');
-    fprintf(' emax = %g, norm(x) = %g\n', full(emax), norm(x));
+    [e,J] = func(x_fd_check); 
+    fdc_opts = au_opts('verbose=0;FWD=1;tol=1e-5', ...
+      struct('delta', opts.DiffChange));
+    fdc_opts.timeout = opts.CHECK_JACOBIAN;
+    emax = au_check_derivatives(func,x_fd_check,J, fdc_opts);
+    if VERBOSE > 0
+      fprintf('au_levmarq: J check emax = %g, norm(x) = %g\n', full(emax), norm(x));
+    end
 end
 
 if VERBOSE >= 1
-  e = func(x);
+  if isempty(e), e = func(x); end
   fprintf('au_levmarq: Beginning LM params %d, residuals %d, initial err = %g\n', ...
       nparams, numel(e), opts.DisplayErr(e));
-
-  if ~isempty(opts.PlotFcn)
-      opts.PlotFcn(x, sumsq(e));
-  end
 
   if (VERBOSE > 1) && (VERBOSE < 2)
     fprintf('au_levmarq: ');
@@ -117,16 +120,26 @@ end
 
 %% Begin the optimization
 lm_lambda = 1e-6;
+opts.LAMBDA_INCREASE = opts.LAMBDA_INCREASE_BASE;
 log_data = [];
 funevals = 0;
 iter = 0;
 Id = speye(nparams);
+endmsg = [];
 start_time = clock;
+
+if ~isempty(opts.PlotFcn)
+  if isempty(e), e = func(x); end
+  opts.PlotFcn(x, e, 0, lm_lambda);
+end
+
 while true
   % This outer loop is called for each Jacobian computation
   % We assume that computing J is an expensive operation so 
   % try to squeeze as much out of each J as possible.
   %% Recompute jacobian
+
+  iter = iter + 1;
 
   % Call user's IterStartFcn
   if ~isempty(opts.IterStartFcn)
@@ -134,16 +147,16 @@ while true
     if ~isequal(size(xnew), size(x))
         fprintf(2, 'WARNING: IterStartFcn changed size of x.\n');
     end
+    x = xnew;
   end
   
-  % Call func
-  [e,J] = func(x);
-  funevals = funevals + 1;
-
-  % Test for exit here, so that e is correct for x
+  if VERBOSE >= 2
+    fprintf('au_levmarq: it %3d lam=%6.2e, ', iter, lm_lambda);
+  end
+  
   if iter > opts.MaxIter
-      endmsg = '>MaxIter';
-      break;
+    endmsg = '>MaxIter';
+    break
   end
   
   if etime(clock, start_time) > opts.TimeOut
@@ -151,8 +164,15 @@ while true
     break
   end
 
-  iter = iter + 1;
+  if funevals >= opts.MaxFunEvals
+    endmsg = '>MaxFunEvals';
+    break
+  end
 
+  % Call func
+  [e,J] = func(x);
+  funevals = funevals + 1;
+  
   % Record new f
   f = sumsq(e);
   f_disp = opts.DisplayErr(e);
@@ -163,10 +183,14 @@ while true
     fprintf(' %g', f_disp);
   end
   
+  %% Solve
   % Estimate Jacobian norm and preconditioner for PCG
   diag_JtJ = sum(J.^2,2);
   norm_estimate = full(mean(diag_JtJ));
-
+  if VERBOSE >= 2
+    fprintf('Jnrm=%4.2e, ', norm_estimate);
+  end
+  
   %   if ~opts.DECOMP_LU
   %     Preconditioner = spdiags(diag_JtJ,0,nparams,nparams);
   %   end
@@ -178,17 +202,15 @@ while true
   % criterion is large lambda (i.e. we stop when gradient
   % descent with a tiny step cannot reduce the function)
 
-  % Reset LAMBDA_INCREASE
-  opts.LAMBDA_INCREASE = opts.LAMBDA_INCREASE_BASE;
-  
-  found_reduction = 0;
-  while ~found_reduction
+  stop = false;
+  while true
     if VERBOSE >= 2
-      fprintf('au_levmarq: iter %2d, lambda=%6.2e, norm=%4.2e, ', iter, lm_lambda, norm_estimate);
-      fprintf('solve ');
+      fprintf('\\');
     end
 
     % Solve (J'*J + \lambda I) x = J'e
+    oldwarn = warning('off', 'MATLAB:nearlySingularMatrix');
+    warncleanup = onCleanup(@() warning(oldwarn.state, oldwarn.identifier));
     if opts.SCHUR_SPLIT > 0
       A = J(:,1:opts.SCHUR_SPLIT);
       B = J(:,opts.SCHUR_SPLIT+1:end);
@@ -228,6 +250,7 @@ while true
         error('infinite dx...');
       end
     end
+    delete(warncleanup)
     
     if opts.USE_LINMIN
         % linmin: Line search along dx
@@ -240,11 +263,14 @@ while true
         fminbnd_options.Display = 'off';
         
         % Execute linmin
-        LINMIN_MIN = 0.001;  % awf, aug14, don't allow to make tiny steps, but reduced from 0.2
+        LINMIN_MIN = 0.1;  % awf, aug14, don't allow to make tiny steps, but reduced from 0.2
+        % apr15, reset from 0.001 to 0.1.  Tiny steps mean any direction is
+        % accepted, so the quadratic approx is not tested.
         [t,f_test,~,fminbnd_output] = fminbnd(f1d, LINMIN_MIN, 10, fminbnd_options);
         x_test = x + t * dx;
         e_test = func(x_test);
         f_disp = opts.DisplayErr(e_test);
+        f_test = sumsq(e_test);
         funevals = funevals + fminbnd_output.funcCount;
         if VERBOSE >= 2, fprintf('linmin [t=%4.2f], #f=%d, ', t, funevals); end
         % record log data for both rejections and acceptances,
@@ -263,48 +289,62 @@ while true
 
     au_assert_equal numel(f_disp) 1
     if f_test < f
-      if VERBOSE >= 2, drawnow; fprintf('Accept %g\n', f_disp); end
+      if VERBOSE >= 2, drawnow; fprintf('Accept %8.3e [%g]\n', f_test, f_disp); end
       if ~isempty(opts.PlotFcn)
-          opts.PlotFcn(x_test, f_disp);
+          opts.PlotFcn(x_test, e, iter, lm_lambda);
       end
       
-      if lm_lambda > opts.LAMBDA_MIN
-        lm_lambda = lm_lambda / opts.LAMBDA_DECREASE;
-      end
+      rhoscale = dx'*(lm_lambda * dx + Jte);
+      rho = (f - f_test)/rhoscale;
+      lambda_mul = 1-(2*rho-1)^3;
+      %if lm_lambda > opts.LAMBDA_MIN
+        %lm_lambda = lm_lambda / opts.LAMBDA_DECREASE;
+      %end
+      lm_lambda = lm_lambda * max(1/3, lambda_mul);
+      lm_lambda = max(lm_lambda, opts.LAMBDA_MIN);
+      
+      % Reset LAMBDA_INCREASE
+      opts.LAMBDA_INCREASE = 2; % opts.LAMBDA_INCREASE_BASE;
       f = f_test;
       break
     else
-      if VERBOSE >= 2, drawnow; fprintf('**rej* %g\n', f_disp); end
-      % This means linmin failed -- the whole direction is wrong, so LAMBDA_MAX should be large
+      % This means linmin failed -- the whole direction is wrong, so
+      % LAMBDA_MAX should be large 
       if lm_lambda > opts.LAMBDA_MAX
         endmsg = 'exceeded lambda_max';
-        found_reduction = 1;
+        stop = true;
         break
-      else
-        lm_lambda = lm_lambda * opts.LAMBDA_INCREASE;
-
-        % successive rejects should be exponential, so now LAMBDA_INCREASE
-        % becomes 1e1, 1e2, 1e4, 1e8 etc
-        opts.LAMBDA_INCREASE = opts.LAMBDA_INCREASE^2;
-        % continue
+      end
+      lm_lambda = lm_lambda * opts.LAMBDA_INCREASE;
+      
+      % successive rejects should be exponential, so now LAMBDA_INCREASE
+      % becomes 1e1, 1e2, 1e4, 1e8 etc
+      opts.LAMBDA_INCREASE = opts.LAMBDA_INCREASE^1.5;
+      % continue
+      if VERBOSE == 2, 
+        fprintf('R');
+      end
+      if VERBOSE > 2, 
+        drawnow; 
+        fprintf('**rej* %8.3e [%g]\n', f_test, f_disp); 
+        fprintf('au_levmarq: iter %d, lambda-> %8.2e, ', iter, lm_lambda);
       end
     end
   end
-
-  % terminate?
-  if found_reduction
-    break
-  end
-
-  if funevals > opts.MaxFunEvals
-    endmsg = '>MaxFunEvals';
+  %% Test termination
+  
+  if stop
     break
   end
   
   % use log_data to check cgce
-  if size(log_data,1) > 10
-    last_f = log_data(end, 2);
-    mid_f = log_data(ceil(end/2), 2);
+  if iter > 10
+    FLATLINE_ITERS = 20;
+    fvals = log_data(:, 2);
+    n_log_entries = numel(fvals);
+    last_f = fvals(n_log_entries);
+    last_iter_to_check = max(ceil(n_log_entries/2), n_log_entries-FLATLINE_ITERS);
+    mid_f = min(fvals(1:last_iter_to_check)); % must be min as log also contains rejects
     if abs(last_f - mid_f) < opts.TolFun*last_f
       endmsg = 'flatlined';
       break
@@ -313,11 +353,10 @@ while true
   
   % Record new x, and loop
   x = x_test;
-
 end
 
 if (VERBOSE >= 1) && (VERBOSE < 3)
-  if VERBOSE == 1.5, fprintf('\n'); end
+  if VERBOSE >= 1.5 && VERBOSE <= 2, fprintf('STOP\n'); end
   if VERBOSE >= 1, fprintf('au_levmarq:'); end
   fprintf(' done [%s], err=%g, %d iterations, %d evals\n', endmsg, rms(e), iter, funevals);
 end

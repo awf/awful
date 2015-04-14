@@ -30,9 +30,9 @@ if nargin < 4
     SIMPLIFY_TMAX = Inf;
 end
 
+t=clock;
 if 0
   fprintf('au_ccode: expr size= ');
-  t=clock;
   l=length(char(symobj));
   fprintf('%.2fMB (took %.1f sec to measure), ', l/1024/1024, etime(clock,t))
 else

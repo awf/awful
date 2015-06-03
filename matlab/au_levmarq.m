@@ -1,7 +1,7 @@
 function [x, f, log_data, endmsg] = au_levmarq(x, func, opts)
 
 % AU_LEVMARQ    Home-grown LM with line search
-%               [x, J, log] = au_levmarq(x, f, opts)
+%               [x, J, log, msg] = au_levmarq(x, f, opts)
 %               x:     Initial estimate
 %               func:  Function to be called.
 %               opts:  Algorithm options (see below)
@@ -15,7 +15,7 @@ function [x, f, log_data, endmsg] = au_levmarq(x, func, opts)
 %               EDIT AU_LEVMARQ  % to see options descriptions
 %
 %               LOG:
-%               Optional third argument LOG has rows
+%               Optional third output LOG has rows
 %                 [lambda, function_value, linmin_t, funevals]
 
 % awf, jul13
@@ -321,9 +321,6 @@ while true
       % becomes 1e1, 1e2, 1e4, 1e8 etc
       opts.LAMBDA_INCREASE = opts.LAMBDA_INCREASE^1.5;
       % continue
-      if VERBOSE == 2, 
-        fprintf('R');
-      end
       if VERBOSE > 2, 
         drawnow; 
         fprintf('**rej* %8.3e [%g]\n', f_test, f_disp); 

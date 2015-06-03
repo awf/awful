@@ -48,8 +48,14 @@ elseif isequal(exprval1, exprval2)
   eq = 1;
 elseif isnumeric(exprval1) && isnumeric(exprval2) && isequal(size(exprval1), size(exprval2))
   % Check for doubles within tolerance
-  err = max(abs(double(exprval1(:)) - double(exprval2(:))));
+  v1 = double(exprval1(:));
+  v2 = double(exprval2(:));
+  err = max(abs(v1 - v2));
   eq = err <= tol;
+  if eq
+    % check nans too, as max([nan 1]) is 1.
+    eq = isequal(isnan(exprval1), isnan(exprval2));
+  end
 else
   eq = 0;
 end

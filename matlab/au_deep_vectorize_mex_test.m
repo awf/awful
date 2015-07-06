@@ -52,5 +52,17 @@ au_test_assert isa(sx,'sym')
 obj2b = au_deep_unvectorize(obj2, sx);
 au_test_assert isa(obj2b(1).a,'sym')
 
+%%
+rng(43);
+Params = struct;
+Params.Sphere.Radius = 0.10;
+Params.Frames(1).SphereCentre = 1;
+Params.Frames(2).SphereCentre = 1;
+v = au_deep_vectorize(Params);
+Params_logical = au_deep_unvectorize(Params, false(size(v)));
+v2 = au_deep_vectorize(Params_logical);
+au_test_equal v2 false(size(v))
+
+%%
 au_test_end
 

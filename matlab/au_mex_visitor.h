@@ -1,10 +1,13 @@
 
-// Deeply 
+// Deeply visit all leaves of matlab data structure
 template <class Array, class Visitor>
 void au_visit_elements(Array* a, Visitor* visitor)
 {
   // Struct array
   if (mxIsStruct(a)) {
+    // xx fixme this visits struct fields in the order they
+    // were created, so that two structs with the same fieldnames
+    // may not be visited in the same order.
     int nFields = mxGetNumberOfFields(a);
     size_t n = mxGetNumberOfElements(a);
     for(mwSize i = 0; i < n; ++i)
@@ -26,7 +29,7 @@ void au_visit_elements(Array* a, Visitor* visitor)
   }
   // Unimplemented
   else {
-    mexPrintf("au_visit_elements: Can't handle a %s\n", mxGetClassName(a));
+    mexErrMsgIdAndTxt("au_visit_elements:unimp", "Can't handle a %s\n", mxGetClassName(a));
   }
 }
 

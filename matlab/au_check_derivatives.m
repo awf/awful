@@ -25,7 +25,7 @@ if nargin == 0
     return
 end
 
-opts = au_opts('delta=1e-4;tol=1e-7;timeout=60;verbose=1;PatternOnly=0', varargin{:});
+opts = au_opts('FWD=0;delta=1e-4;tol=1e-7;timeout=60;verbose=1;PatternOnly=0;IndToName=0;', varargin{:});
 
 [~,p] = size(J);
 if opts.verbose
@@ -33,38 +33,60 @@ if opts.verbose
 end
 au_assert_equal p numel(x)
 % Check derivatives OK
-fdJ=0*J;
 t = clock;
 emax = 0;
 ks = randperm(p);
+if opts.FWD
+  fx = f(x);
+end
+numExtra = 0;
+
 for ki=1:p
     k = ks(ki);
     e = zeros(size(x));
     e(k) = opts.delta;
-    scale = 1/((x(k)+e(k))-(x(k)-e(k)));
-    fdJ(:,k) = (f(x+e) - f(x-e))*scale;
-    % Used for checking JacobPattern
-    if opts.PatternOnly
-        fdJ(:,k) = fdJ(:,k) ~= 0;
-        err = max(fdJ(:,k) - J(:,k));
+    if opts.FWD
+      xp = x+e;
+      scale = 1/(xp(k)-x(k));
+      fdJcol = (f(xp) - fx)*scale;
     else
-        err = max(abs(fdJ(:,k) - J(:,k)));
+      xp = x+e;
+      xm = x-e;
+      scale = 1/(xp(k)-xm(k));
+      fdJcol = (f(xp) - f(xm))*scale;
+    end
+    % Used for checking JacobPattern, and here we check only that 
+    % JacobPattern does not have incorrectly positioned zeroes.
+    if opts.PatternOnly
+        fdJcolb = fdJcol ~= 0;
+        err = max(fdJcolb - J(:,k));
+        numExtra = numExtra + sum(fdJcol == 0 & (J(:,k) ~= 0));
+    else
+        err = max(abs(fdJcol - J(:,k)))/norm(fdJcol);
     end
     if err > opts.tol
         err = full(err);
-        error('awful:check_derivatives', 'au_check_derivatives: Error on parameter %d = %g', k, err);
+        fprintf(2, '\nau_check_derivatives: Error on parameter %d = %g (%dth checked, colnorm = %g)', ...
+          k, err, ki, norm(fdJcol));
+        if isa(opts.IndToName, 'function_handle')
+          fprintf(2, '\n Param: '); opts.IndToName(k);
+        end
+
+        % error('awful:check_derivatives', 'au_check_derivatives: Error on parameter %d = %g (%dth checked)', k, err, ki);
+        %%
+        % hold off; plot(fdJcol,'o'); hold on; plot(J(:,k),'x');
     end
     emax = max(emax, err);
     if etime(clock, t) > opts.timeout
         if opts.verbose
-            fprintf('timeout, checked %d/%d]\n', ki, p);
+            fprintf('[timeout after %d]', ki);
         end
         break
     end
 end
 if opts.verbose
     if opts.PatternOnly
-        fprintf(' %d/%d extra zeros in Pattern ', full(sum(J(:)-fdJ(:))), nnz(J));
+        fprintf('[%d/%d extra zeros in JacobPattern]', numExtra, nnz(J));
     end
     fprintf('all OK\n');
 end

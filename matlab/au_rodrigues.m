@@ -14,12 +14,14 @@ if nargin == 0
     axis = axis /norm(axis);
     angle = 23 / 180 * pi;
     R = au_rodrigues(axis*angle);
-    
+    Rmex = au_rodrigues_mex(axis*angle);
     Rslow = au_rodrigues(axis*angle, 1, 1);
     au_test_equal R Rslow 1e-9
+    au_test_equal R Rmex 1e-9
     au_test_equal('det(R)','1',1e-15,1);
     au_test_equal('R*axis','axis',1e-15,1);
     au_test_equal au_rodrigues([0,0,0]) eye(3)
+    au_test_equal au_rodrigues_mex([0,0,0]) eye(3)
     
     disp('Test timing');
     tic
@@ -43,6 +45,13 @@ if nargin == 0
     end
     t2 = toc-t_baseline;
     fprintf('Fast: %.1f usec\n', t2/N*1e6);
+    
+    tic
+    for k=1:N
+        R = au_rodrigues_mex(axis*angle);
+    end
+    t2 = toc-t_baseline;
+    fprintf('Mex: %.1f usec\n', t2/N*1e6);
     
     if t2 > t1
         disp('FAILED: Fast is slower than slow....\n');

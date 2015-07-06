@@ -1,4 +1,4 @@
-function au_test_equal(expr1,expr2,tol,FORCE_PRINT)
+function au_test_equal(expr1,expr2,tol,QUIET)
 % AU_TEST_EQUAL  Test all(EXPR1 == EXPR2), print result
 %             au_test_equal det(M) 0 1e-7
 %             au_test_equal('det(M)','0',1e-7);
@@ -27,10 +27,10 @@ else
 end
 
 if nargin < 4
-  FORCE_PRINT = 0;
+  QUIET = 0;
 else
-  if ischar(FORCE_PRINT)
-    FORCE_PRINT = strcmp(FORCE_PRINT, 'print');
+  if ischar(QUIET)
+    QUIET = strcmp(QUIET, '-q');
   end
 end
 
@@ -64,9 +64,12 @@ if ~eq
   au_test_result(0);
   if ~isnumeric(exprval1)
     fprintf(2, '%s\n', [hd ' FAILED: ' expr1 ' == ' expr2 ]);
+    if ischar(exprval1) && ~QUIET
+      fprintf(2, 'E1:''%s'' !=\nE2:''%s''\n', exprval1, exprval2);
+    end
   else
     fprintf(2, '%s *FAILED* |%s - %s| < %g (ERR=%g)\n', hd, expr1, expr2, tol, err);
-    if (numel(exprval1) < 10 || FORCE_PRINT)
+    if (numel(exprval1) < 10 || ~QUIET)
       m2s = @(x) au_mat2str(x, 8, 40);
       if ~strcmp(expr1, num2str(exprval1(:)'))
         fprintf(2, '   with %s = %s\n', expr1, m2s(exprval1));

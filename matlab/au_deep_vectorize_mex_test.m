@@ -1,6 +1,11 @@
 
 
 %% Test
+<<<<<<< HEAD
+=======
+mex -Ic:/dev/codeplex/awful/matlab au_deep_vectorize_mex.cxx
+mex -Ic:/dev/codeplex/awful/matlab au_deep_unvectorize_mex.cxx
+>>>>>>> dev
 
 au_test_begin
 
@@ -28,6 +33,10 @@ end
 t2 = toc/N;
 
 SPEEDUP = t2/t1;
+<<<<<<< HEAD
+=======
+fprintf('au_dee
+>>>>>>> dev
 
 au_test_equal x1 x2
 

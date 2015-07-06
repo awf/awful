@@ -6,7 +6,6 @@
  mex -Ic:/dev/codeplex/awful/matlab au_deep_vectorize_mex.cxx
  au_deep_vectorize_mex_test
 %%
-
  */
 
 struct WritingVisitor {
@@ -22,14 +21,11 @@ struct WritingVisitor {
     auto vp = const_cast<double*>(v);
     while (n--) {
       if (in_ptr == in_end)
-	mexErrMsgIdAndTxt("au_deep_unvectorize_mex", "Too few entries in rhs");
+	mexErrMsgIdAndTxt("au_deep_unvectorize_mex:TooSmall", "Too few entries in rhs");
       *vp++ = *in_ptr++;
     }
   }
 };
-
-// Declare "undocumented" mx function
-extern "C" bool mxUnshareArray(mxArray *array_ptr, bool noDeepCopy = false);
 
 // Declare mlx_function (C++ version of mexFunction)
 void mlx_function(mlx_inputs& in, mlx_outputs& out)

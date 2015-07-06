@@ -5,7 +5,7 @@ function s = au_mat2str(m, digits, max_elements)
 %          awf@microsoft.com
 
 if nargin == 0
-  % unit test
+  %% unit test
   disp('Testing au_mat2str');
   
   a = randn(2,3,2)
@@ -20,7 +20,18 @@ if nargin == 0
   a = rand(2,3)
   disp(au_mat2str(a, 4, 5));
   
+  disp(au_mat2str([1:4]))
+  disp(au_mat2str([1:4]'))
+  
   return
+end
+
+if nargin < 2
+  digits = 4;
+end
+
+if nargin < 3
+  max_elements = 10;
 end
 
 sz = size(m);

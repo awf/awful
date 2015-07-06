@@ -143,11 +143,16 @@ classdef au_optimproblem < handle
     %  any-shape object containing <int32> which indicate which parameter
     %  indices to vary.   A good source for those is OP.Inds.
     function set.ParamsToVary(OP, val)
-      if isstruct(val)
-        au_assert_equal numel(au_deep_vectorize(val)) OP.nParams
+      v = au_deep_vectorize(val);
+      if islogical(v) 
+        au_assert isstruct(val)
+        au_assert_equal numel(au_deep_vectorize_mex(val)) OP.nParams
+        % Attempt to vectorize val to see if it's all the same type
+        v = au_deep_vectorize(val);
+        au_assert isa(v(1),'logical')
         OP.ParamsToVary_template = val;
       else
-        inds = au_deep_vectorize(val);
+        inds = v;
         if ~isa(inds(1),'int32')
           error('au_optimproblem:ParamsToVary', 'ParamsToVary should be set to int32s.  Use P.Inds?.');
         end
@@ -352,7 +357,6 @@ classdef au_optimproblem < handle
       % lsqnonlin will see only a subset of parameters.
       p_init = au_deep_vectorize_mex(OP.Params);
       p_varying_mask = au_deep_vectorize(OP.ParamsToVary_template);
-      p_fixed_mask = ~p_varying_mask;
       
       pvec = p_init(p_varying_mask);
       lb = lb(p_varying_mask);
@@ -360,12 +364,14 @@ classdef au_optimproblem < handle
       
       subset_JacobPattern = OP.JacobPattern(:,p_varying_mask);
       
-      p2all = @(x) incorporate_fixed_params(p_init, p_fixed_mask, x);
+      p2all = @(x) masked_assign(p_init, p_varying_mask, x);
+      
+      au_assert_equal p2all(p_init(p_varying_mask)) p_init
       
       f = @(x) OP.CallWithSubset(x, p2all, subset_JacobPattern);
       
       res0 = f(pvec);
-      au_assert_equal(numel(res0), size(subset_JacobPattern,1))
+      au_assert_equal numel(res0) size(subset_JacobPattern,1)
       
       if ~strcmp(OP.Display, 'none')
         fprintf('au_optimproblem: Begin, nParams = %d/%d, nResiduals = %d, nGroups = %d, Err = %8.3e [%g]\n', ...
@@ -646,34 +652,7 @@ p = (n+1)*ones(n,1)-p;
 c = color(JacobPattern,p);
 end
 
-function x = incorporate_fixed_params(x0, fixed_mask, x_subset)
-% cal_incorporate_fixed_params Make full param vector from a varying subset
-% and some fixed ones.
-if nargin == 0
-  %% test
-  x0 = 1:20;
-  x_fixed = rand(size(x0)) > .6;
-  
-  x_subset = x0(~x_fixed);
-  
-  x_all = incorporate_fixed_params(x0, x_fixed, x_subset);
-  
-  au_test_begin
-  au_test_equal x_all x0
-
-  x_all = incorporate_fixed_params(x0, x_fixed, x_subset*0);
-  
-  au_test_equal x_all(x_fixed) x0(x_fixed)
-  au_test_equal x_all(~x_fixed) x_subset*0
-  
-  au_test_end
-  
-  return
-end
-%au_assert_equal(size(fixed_mask), size(x0))
-%au_assert_equal(sum(~fixed_mask), numel(x_subset))
-
-x = 0*x0;
-x(fixed_mask) = x0(fixed_mask);
-x(~fixed_mask) = x_subset;
+%% Assign a subset of array elements
+function a = masked_assign(a, mask, vals)
+a(mask) = vals;
 end

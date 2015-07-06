@@ -29,13 +29,13 @@ P = au_optimproblem(Params);
 P.Objective = @(OptimProblem) f(OptimProblem, data);
 P.ComputeJacobPattern(1);
 
-pause
 
 %% Optimize over a subset of parameters
 P.ParamsToVary = {P.Inds.Cameras, P.Inds.Frames(1)};
 P.Display = 'final';
 P.TolFun = 1e-5;
 P.TolX = 1e-5;
+P.MaxFunEvals = 1000;
 P.Optimize();
 
 %% And now all parameters

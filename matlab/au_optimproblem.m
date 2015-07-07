@@ -28,7 +28,7 @@ classdef au_optimproblem < handle
   %       OP = au_optimproblem(Params);  % Construct a problem object
   %
   %       OP.Objective = @(OP) MyFunc(OP, OtherData)
-  %       function MyFunc(OptimProblem)
+  %       function MyFunc(OP)
   %         OP.ClearResiduals()  % May deprecate if this hurts composition
   %         OP.AddResidualBlock(OP.Params.Pose(i) * OP.Params.Points(j))
   %         OP.AddResidualBlockInfo({OP.Inds.Pose(i), OP.Inds.Points{j}))
@@ -188,7 +188,7 @@ classdef au_optimproblem < handle
     % when it can be avoided, so I would recommend calling it after any
     % change to the objective function or its inputs.  You definitely want
     % to call it if Params changes, or if the number of residuals changes.
-    function ComputeJacobPattern(OP, DEBUG)
+    function J_full = ComputeJacobPattern(OP, DEBUG)
       if nargin < 2
         DEBUG = 1;
       end

@@ -1,11 +1,11 @@
 function [l, Jacobian] = au_logsumexp(M)
 % AU_LOGSUMEXP  Compute log(sum(exp(M))) stably
-%                   au_logsumexp(M) = log(sum(exp(M))) 
-%                 but avoids under/overflow.
-%               [L, Jacobian] = au_logsumexp(M) returns the Jacobian
+%                   au_logsumexp(M) = log(sum(exp(M)))'
+%               but avoids under/overflow.
 %               Notice that although sum operates along columns,
 %               L is returned as a column vector so that the Jacobian 
 %               makes sense.
+%               [L, Jacobian] = au_logsumexp(M) returns the Jacobian
 
 % awf, may13
 

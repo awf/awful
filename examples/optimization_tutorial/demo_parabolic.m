@@ -1,9 +1,8 @@
-function [x, fcount] = demo_parabolic(f, a, c)
+function [x, fcount] = demo_parabolic(f, a, c, xs)
 
 clf
-xs = 0:.01:1;
 plot(xs, f(xs), 'k');
-axis([0 1 0 max(f(a), f(c))])
+axis([min(xs) max(xs) 0 max(f(a), f(c))])
 hold on
 
 phi = (3 - sqrt(5))/2;
@@ -32,8 +31,8 @@ while c-a > 1e-3
   pause
 
   % reject wild values
-  if x < a, x = (a + b)/2; end
-  if x > c, x = (b + c)/2; end
+  if x < a, x = a; end
+  if x > c, x = c; end
   if abs(x-b) < 1e-7, x = (b + c)/2; end
   % Sort into a,b,x,c order
   if x < b, [b x] = deal(x,b); end

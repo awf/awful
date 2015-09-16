@@ -1,13 +1,18 @@
-function [x, fcount] = demo_bisection(f, a, c, phi)
+function [x, fcount] = demo_bisection(f, a, c, phi, xs)
+
+if nargin == 0
+  evalin('base', 'demo_bisection(fhard, .1, 6.5, .5, xrange)');
+  return
+end
 
 clf
-set(1, 'defaultLineLineSmoothing', 'on')
-xs = 0:.01:1;
+xmax = max(xs);
+xmin = min(xs);
 plot(xs, f(xs), 'k');
-axis([0 1 0 max(f(a), f(c))*1.1])
+axis([xmin xmax 0 max(f(a), f(c))*1.1])
 hold on
 
-if nargin < 4
+if nargin < 4 || ~isfinite(phi)
   phi = (3 - sqrt(5))/2;
 end
 b = a + phi*(c-a);
@@ -34,7 +39,7 @@ while c-a > 1e-3
   pause
 
   % Sort into a,b,x,c order
-  if x < b, [b x] = deal(x,b); end
+  if x < b, [b, x] = deal(x,b); end
   % Choose next triplet
   isVshaped = @(f,g,h) (g < f) && (g < h);
   if isVshaped(f(a), f(b), f(x))

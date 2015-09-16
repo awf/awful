@@ -2,8 +2,9 @@ function out = demo_taylor_2d(pickstart, METHOD, MODEL, PAUSE)
 
 % Demonstrate damped newton min
 
-if nargin < 1
-  pickstart = 0;
+if nargin == 0
+  demo_taylor_2d(0, 'newton', 'rosenbrock');
+  return
 end
 
 METHODS = {
@@ -61,6 +62,7 @@ switch MODEL
 end
 
 %% Compute derivatives
+disp('demo_taylor_2d: computing derivatives');
 syms x y real
 dx = diff(f(x,y),x);
 dy = diff(f(x,y),y);
@@ -86,7 +88,7 @@ Hessian = @(x,y) [h11(x,y) h12(x,y); h21(x,y) h22(x,y)];
 
 % Compute solver for coord descent
 solve_y = solve(dy, y);
-solve_x = solve(dx, x);
+solve_x = solve(dx, x, 'ReturnConditions', true);
 
 %% Compute error surface
 z = f(xx,yy);
@@ -94,6 +96,8 @@ z = f(xx,yy);
 hold off
 colormap(jet(256))
 image(xx(1,:), yy(:,1), z.^.5*2+10)
+axis equal 
+axis([min(xx(1,:)), max(xx(1,:)), min(yy(:,1)), max(yy(:,1))])
 hold on
 contour(xx,yy,z,[.1 2 20 100 500 1000 2000],'color', [0 0 0])
 axis xy
@@ -342,7 +346,7 @@ for iter = 1:MAXITER
   if PAUSE
     drawnow
     % cmd = '';
-    cmd = input([METHOD ': press return or q']);
+    cmd = input(['demo_taylor_2d[' METHOD ']: press return or q']);
     if cmd == 'q'
       return
     end

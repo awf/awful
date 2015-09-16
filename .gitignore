@@ -25,3 +25,4 @@ examples/robust_bundle_revisited/rba_figures.pdf
 examples/robust_bundle_revisited/rba_figures.eps
 examples/robust_bundle_revisited/fig_wfunc_bars.pdf
 examples/robust_bundle_revisited/fig_wfunc_bars.eps
+matlab/au_ccode_test_mex.cpp

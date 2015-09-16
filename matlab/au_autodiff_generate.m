@@ -173,7 +173,7 @@ if ischar(filename)
       J = val_mex(2:end,:)';
       f_dc = @(x) feval(fn, x, example_data(:), false)';
       timeout = max(2, codegen_time/10);
-      au_check_derivatives(f_dc, example_arguments(:), J, 'delta=1e-6;tol=1e-4', 'timeout', timeout);
+      au_check_derivatives(f_dc, example_arguments(:), J, 'delta=1e-5;tol=1e-3', 'timeout', timeout);
     end
 end
 

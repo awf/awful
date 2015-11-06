@@ -20,13 +20,19 @@ function AUTO_GENERATED_FROM_Contents_template_txt
 % AU_ASSERT*      Easier assertions  
 % AU_ROSENBROCK   Rosenbrock
 % AU_RUN_TESTS    Run all tests in the library
+% au_progressbar_ascii A function
 % 
-% *Optimization/Numerics*
+% *Optimization*
+% AU_OPTIMPROBLEM Simplified but powerful nonlinear least squares
 % AU_LEVMARQ      Home-grown LM with line search
 % AU_RANSAC       Ransac loop
 % AU_DEEP_VECTORIZE Flatten arbitrary structure/cell a linear vector x.
 % AU_DEEP_UNVECTORIZE Unflatten arbitrary structure/cell from a linear vector x.
+% 
+% *Special functions*
+% AU_RODRIGUES    Convert axis/angle representation to rotation
 % AU_LOGSUMEXP    Compute log(sum(exp(M))) stably
+% AU_SIGMOID      s = 1./(1 + exp(-4*slope*x))
 % 
 % *File I/O helpers*
 % AU_FSCAN_REGEXP File scan line by line splitting on regexp

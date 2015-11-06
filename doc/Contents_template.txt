@@ -20,13 +20,19 @@ that clashes of function names are avoided.
   AU_ASSERT* Easier assertions  
 !AU_ROSENBROCK
 !AU_RUN_TESTS
+!au_progressbar_ascii
 
-*Optimization/Numerics*
+*Optimization*
+!AU_OPTIMPROBLEM
 !AU_LEVMARQ
 !AU_RANSAC
 !AU_DEEP_VECTORIZE
 !AU_DEEP_UNVECTORIZE
+
+*Special functions*
+!AU_RODRIGUES
 !AU_LOGSUMEXP
+!AU_SIGMOID
 
 *File I/O helpers*
 !AU_FSCAN_REGEXP

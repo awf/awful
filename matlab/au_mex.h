@@ -250,7 +250,9 @@ struct mlx_array {
 
   // 0-based []
   T const& operator[](mwIndex ind) const {
+#ifndef AU_MEX_UNCHECKED
     mlx_assert(ind >= 0 && ind < numel_);
+#endif
     return data[ind];
   }
 

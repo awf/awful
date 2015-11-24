@@ -5,6 +5,7 @@ disp('mexing');
 mex('au_mex_example_1.cxx');
 mex('au_mex_example_2.cxx');
 
+%%
 disp('testing');
 A = rand(2,3);
 B = rand(2,3);
@@ -12,6 +13,9 @@ O = au_mex_example_1(A, B);
 
 au_test_equal O (A+B)
 
+disp('testing example1 with wrong size -- should fail');
+au_test_should_fail('au_mex_example_1(1,1)');
+%%
 disp('testing example2<double>');
 A = rand(2,3);
 B = rand(2,3);
@@ -27,7 +31,7 @@ O = au_mex_example_2(A, B);
 au_test_equal O (A+B)
 
 disp('testing example2<uint16> -- should fail');
-au_test_should_fail('au_mex_example_2(uint16(8), uint16(9))');
+au_test_should_fail('au_mex_example_2(uint16(A), uint16(B))');
 
 %% Check for leaks
 disp('Check for leaks...');

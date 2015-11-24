@@ -30,9 +30,8 @@
  * 
  * */
 
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
+#include <iostream>
+#include <sstream>
 
 #include <mex.h>
 
@@ -116,14 +115,31 @@ struct mlx_size : public mlx_dims {
 };
 
 // Check dims for equality
+inline
 bool operator==(mlx_dims const& a, mlx_dims const& b)
 {
-    if (a.n != b.n) return false;
+    if (a.n != b.n)
+      return false;
+    
     for(int i = 0; i < a.n; ++i)
         if (a.dims[i] != b.dims[i])
             return false;
     
     return true;
+}
+
+inline
+std::ostream& operator<<(std::ostream& s, mlx_dims const& dims)
+{
+  if (dims.n <= 0)
+    return s << "[]";
+
+  s << "[" << (int)dims[0];
+    for(int i = 1; i < dims.n; ++i)
+      s << " " << (int)dims[i];
+    s << "]";
+
+  return s;
 }
 
 // ----------------------------------------------------------------------------
@@ -148,6 +164,27 @@ struct mlx_array {
   // If so, take local copies of its size and data pointer.
   mlx_array(mxArray const* a, bool throw_on_type_mismatch = true) 
   {
+    init(a, throw_on_type_mismatch);
+  }
+  
+  // Take mxArray pointer 'a', and check that its contents
+  // correspond to the template type parameter T, and to the given
+  // size.
+  // If so, take local copies of its size and data pointer.
+  mlx_array(mlx_dims const& size_desired, mxArray const* a, bool throw_on_type_mismatch = true)
+  {
+    init(a, throw_on_type_mismatch);
+    if (size == size_desired)
+      return;
+    
+    // Error
+    std::ostringstream str;
+    str << "Size mismatch: wanted " << size_desired << ", got " << size;
+    mexErrMsgIdAndTxt("awful:bad_size", "mlx_array<%s>: %s",
+            mxGetClassName(a), str.str().c_str());
+  }
+  
+  void init(mxArray const* a, bool throw_on_type_mismatch) {
     mx_array = a;
     matlab_class_id = mlx_class_id((T*)0);
     ok = (a) && (mxGetClassID(a) == matlab_class_id);

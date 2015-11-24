@@ -232,7 +232,7 @@ struct mlx_array {
   }
   
   // operator(int,int)
-  T& operator()(mwIndex r, mwIndex c, ...) {
+  T& operator()(mwIndex r, mwIndex c) {
 #ifndef AU_MEX_UNCHECKED
     mlx_assert(r >= 0 && r < rows);
     mlx_assert(c >= 0 && c < cols);

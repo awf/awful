@@ -19,5 +19,5 @@ try
     fprintf(2, '%s\n', [hd ' FAILED: ' expr1 ' should have thrown']);
     
 catch e
-    disp([hd ' passed: ' expr1 ' threw exception "' e.message '"']);
+  fprintf('%s passed: %s, \n   threw "%s"\n', hd, expr1, e.message);
 end

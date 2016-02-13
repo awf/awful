@@ -44,7 +44,7 @@ err = inf;
 
 if symbolic
   eq = all(exprval1 == exprval2);
-elseif isequal(exprval1, exprval2)
+elseif isequaln(exprval1, exprval2)
   eq = 1;
 elseif isnumeric(exprval1) && isnumeric(exprval2) && isequal(size(exprval1), size(exprval2))
   % Check for doubles within tolerance

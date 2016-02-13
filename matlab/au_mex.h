@@ -57,6 +57,7 @@ typedef ... mlx_int8;  // mlx_int8 is the C++ type stored in a MATLAB int8
 mxClassID mlx_class_id(mlx_int8*);  // Return mxINT8_CLASS
  */
 DECLARE_MEX_CLASS(mxINT8_CLASS, int8, int8_T)
+DECLARE_MEX_CLASS(mxCHAR_CLASS, char, char_T)
 DECLARE_MEX_CLASS(mxUINT8_CLASS, uint8, uint8_T)
 DECLARE_MEX_CLASS(mxINT16_CLASS, int16, int16_T)
 DECLARE_MEX_CLASS(mxUINT16_CLASS, uint16, uint16_T)
@@ -148,6 +149,10 @@ std::ostream& operator<<(std::ostream& s, mlx_dims const& dims)
 static const bool mlx_array_nothrow = false;
 
 // This is a (thankfully not too) smart pointer to an mxArray.
+// In particular, it doesn't create new arrays, or destroy the 
+// one it holds.
+//
+// To create arrays, see mlx_make_array.
 template <class T>
 struct mlx_array {
   mxArray const* mx_array;
@@ -174,6 +179,9 @@ struct mlx_array {
   mlx_array(mlx_dims const& size_desired, mxArray const* a, bool throw_on_type_mismatch = true)
   {
     init(a, throw_on_type_mismatch);
+    if (!ok)
+      return;
+    
     if (size == size_desired)
       return;
     
@@ -272,12 +280,18 @@ struct mlx_array {
       return numel_;
   }
 
+  // Call mxDestroyArray
+  void destroy() {
+    mxDestroyArray(mx_array);
+  }
 };
 
 
 // ----------------------------------------------------------------------------
 // Create an mxArray of given size, with 
 // the matlab class id corresponding to C++ type T
+// This will be uninitialized.
+// There is no destructor -- to destroy the array, call destroy().
 template <class T>
 struct mlx_make_array : mlx_array<T>
 {
@@ -309,6 +323,7 @@ private:
             odims[i] = this->size.dims[i];
 	    this->numel_ *= odims[i];
 	}
+        // xx uninit?
         this->mx_array = mxCreateNumericArray(this->size.n, odims, 
                 this->matlab_class_id, mxREAL);
 
@@ -318,6 +333,39 @@ private:
   }
 };
 
+// ----------------------------------------------------------------------------
+
+// 
+struct mlx_string {
+  char* buffer;
+  mlx_string(mxArray const* pa) {
+    mlx_array<mlx_char> a(pa);
+    buffer = new char[a.numel()+1];
+    mxGetString(pa, buffer, a.numel()+1);
+  }
+  
+  char* c_str() { return buffer; }
+  
+  ~mlx_string() {
+    delete [] buffer;
+  }
+};
+
+// 
+template <class T>
+struct mlx_scalar : public mlx_array<T> {
+  typedef typename mlx_array<T> base_t;
+  
+  mlx_scalar(mxArray const* p, bool throw_on_type_mismatch = true): 
+    base_t(p, throw_on_type_mismatch)
+  {
+      if (ok)
+        mlx_assert(numel() == 1);
+  }
+  
+  // This will interfere with operator bool()
+  //operator T() { return *data; }
+};
 
 // ----------------------------------------------------------------------------
 

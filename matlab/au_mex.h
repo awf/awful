@@ -40,7 +40,8 @@
 // Assert macro.
 // This is not disabled by optimization -- if you want to make an assert
 // in a tight loop, wrap it in #ifdef MLX_DEBUG
-#define mlx_assert(expr) if (expr) 0; else mexErrMsgTxt("mlx_assert failed: " #expr)
+#define mlx_assert2(expr,L) if (expr) 0; else mexErrMsgTxt("mlx_assert failed: " #expr ", line " #L)
+#define mlx_assert(expr) mlx_assert2(expr, __LINE__)
 
 
 // ----------------------------------------------------------------------------
@@ -163,6 +164,14 @@ struct mlx_array {
   mwSize cols;
   mlx_dims size;
   mwSize numel_;
+  
+  // Uninitialized - operator bool() will return false.
+  mlx_array() 
+  {
+    ok = false;
+    mx_array = 0;
+    data = 0;
+  }
   
   // Take mxArray pointer 'a', and check that its contents
   // correspond to the template type parameter T.
@@ -410,6 +419,10 @@ struct mlx_output {
     mlx_output& operator=(mxArray* that) {
         *array_ptr = that;
         return *this;
+    }
+    
+    operator mxArray*() {
+      return *array_ptr;
     }
 };
 

@@ -32,33 +32,40 @@ au_test_end au_interp2
 
 
 %% Test grad
-A = randn(2,2,2,3)*3;
+A = randn(5,5,2,3)*3;
 
-Xrange = [ 1.1 1.1 1.7 1.7 1.0 1.9 ];
-Yrange = [ 1.3 1.7 1.1 1.8 1.9 1.0 ];
+Xrange = 1+[ 1.1 1.1 1.7 1.7 1.0 1.9 ];
+Yrange = 1+[ 1.3 1.7 1.1 1.8 1.9 1.0 ];
 Xrange = Xrange(5);
 Yrange = Yrange(5);
 
 [X,Y] = meshgrid(Xrange, Yrange);
 
-[B, DB] = au_interp2(A, X, Y, 'l');
-
-delta = 1e-7;
-dbdx_fd = (au_interp2(A, X+delta, Y, 'l') - B)./delta;
-dbdy_fd = (au_interp2(A, X, Y+delta, 'l') - B)./delta;
-DB_fd = cat(length(size(DB)), dbdx_fd, dbdy_fd);
-
-au_test_equal DB DB_fd 1e-7
-
-
+for OP = ['c','l']
+  OP
+  [B, DB] = au_interp2(A, X, Y, OP);
+  
+  delta = 1e-7;
+  dbdx_fd = (au_interp2(A, X+delta, Y, OP) - B)./delta;
+  dbdy_fd = (au_interp2(A, X, Y+delta, OP) - B)./delta;
+  DB_fd = cat(length(size(DB)), dbdx_fd, dbdy_fd);
+  
+  au_test_equal DB DB_fd 1e-5
+end
 
 %%
-Z = rand(2) * 64;
-R = 1:.0003:2; 
+rand('seed', 2.0)
+Z = uint8(rand(5) * 64);
+R = 2:.003:4; 
 [xx,yy] = meshgrid(R);
 hold off; 
-image(1:2,1:2,Z);
+image(1:5.5,1:5,Z);
 hold on
+image(R,R,0.5*au_interp2(Z,xx,yy,'c'));
+axis equal
+colormap prism
+
+%%
 N=10;
 ToNS = N * numel(xx) / 1e9;
 for cast = {@single, @double}

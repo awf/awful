@@ -26,3 +26,19 @@
 % Authors: Yoni Wexler, Tomas Werner, ojw, awf
 
 error('Compile au_interp2.cxx');
+
+
+%% Derivations for cubic
+syms u v real
+u1 = u * u;
+v1 = v * v;
+u2 = u1 * u;
+v2 = v1 * v;
+syms c0 c1 c2 c3 real
+for m=0:3
+  a = (c3 + c1) - (c2 + c0);
+  bm = v2 * a + v1 * ((c0 - c1) - a) + v * (c2 - c0) + c1;
+  dbmdv = 3*v1*a + 2*v*((c0 - c1) - a) + (c2 - c0);
+end
+a = (b(3) + b(1)) - (b(2) + b(0));
+Bj = u2 * a + u1 * (b(0) - b(1) - a) + u * (b(2) - b(0)) + b(1);

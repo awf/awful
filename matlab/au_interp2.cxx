@@ -32,7 +32,7 @@ void interp_nearest(mlx_array<U>& B, mlx_array<U>& B_grad, mlx_array<T>& A, mlx_
 template<bool do_grad, class T, class U> 
 void interp_linear(mlx_array<U>& B, mlx_array<U>& B_grad, mlx_array<T>& A, mlx_array<mlx_double>& X, mlx_array<mlx_double>& Y, U oobv);
 
-template<class T, class U> 
+template<bool do_grad, class T, class U> 
 void interp_cubic(mlx_array<U>& B, mlx_array<U>& B_grad, mlx_array<T>& A, mlx_array<mlx_double>& X, mlx_array<mlx_double>& Y, U oobv);
 
 void mlx_function(mlx_inputs& in, mlx_outputs& out)
@@ -138,7 +138,10 @@ bool try_cast_2(mlx_inputs& in, mlx_outputs& out)
         interp_linear<false>(ans, B_grad, A, X, Y, oobv);
       break;
     case cubic:
-      interp_cubic(ans, B_grad, A, X, Y, oobv);
+      if (B_grad)
+        interp_cubic<true>(ans, B_grad, A, X, Y, oobv);
+      else
+        interp_cubic<false>(ans, B_grad, A, X, Y, oobv);
       break;
   }
   
@@ -264,8 +267,8 @@ void interp_linear(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
         if (do_grad) {
           // TODO: u,v = 0 means this returns one element of the subgradient
           //       Possibly better would be to return 0 if in the subgradient
-          B_grad[j] = A01 - A00 + v*(A00 - A01 - A10 + A11);
-          B_grad[j+end] = A10 - A00 + u*(A00 - A01 - A10 + A11);
+          B_grad[j] = saturate_cast<Out_t, double>(A01 - A00 + v*(A00 - A01 - A10 + A11));
+          B_grad[j+end] = saturate_cast<Out_t, double>(A10 - A00 + u*(A00 - A01 - A10 + A11));
         }
       }
     }
@@ -279,7 +282,7 @@ void interp_linear(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
       for (j = i; j < end; j += num_points, k += step) {
         B[j] = saturate_cast<Out_t, double>(A[k] + (A[k+h] - A[k]) * u);
         if (do_grad) {
-          B_grad[j] = (A[k+h] - A[k]);
+          B_grad[j] = saturate_cast<Out_t, double>(A[k+h] - A[k]);
           B_grad[j+end] = 0;
         }
       }
@@ -295,7 +298,7 @@ void interp_linear(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
         B[j] = saturate_cast<Out_t, double>(A[k] + (A[k+1] - A[k]) * v);
         if (do_grad) {
           B_grad[j] = 0;
-          B_grad[j+end] = (A[k+1] - A[k]);
+          B_grad[j+end] = saturate_cast<Out_t, double>(A[k+1] - A[k]);
         }
       }
     } else {
@@ -315,7 +318,7 @@ void interp_linear(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
 }
 
 // Hermite cubic spline interpolation
-template<class T, class Out_t>
+template<bool do_grad, class T, class Out_t>
 void interp_cubic(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad, 
        mlx_array<T>& A, mlx_array<mlx_double>& X, mlx_array<mlx_double>& Y, Out_t oobv)
 {
@@ -324,7 +327,7 @@ void interp_cubic(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
   int h = A.size[0];
   int w = A.size[1];
   int col = A.numel() / (w*h);
-  mexPrintf("col = %d\n", col);
+
   int end = num_points * col;
   int step = h * w;
 
@@ -332,33 +335,44 @@ void interp_cubic(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
   double dh = (double)h - 1;
 
   // For each of the interpolation points
-  int i, j, k, m, n, x, y;
-  double a, b[4], c[4], u[3], v[3];
-#pragma omp parallel for if (num_points > 100) num_threads(omp_get_num_procs()) default(shared) private(a,b,c,i,j,k,m,n,u,v,x,y)
-  for (i = 0; i < num_points; i++) {
-    
+  int i, j, m, n;
+#pragma omp parallel for if (num_points > 100) num_threads(omp_get_num_procs()) default(shared) private(i,j,m,n)
+  for (i = 0; i < num_points; i++) {    
     if (X[i] >= 2 && X[i] < dw && Y[i] >= 2 && Y[i] < dh) {
       // Bicubicly interpolate
-      x = (int)X[i];
-      y = (int)Y[i];
-      u[0] = X[i] - x;
-      v[0] = Y[i] - y;
-      u[1] = u[0] * u[0];
-      v[1] = v[0] * v[0];
-      u[2] = u[1] * u[0];
-      v[2] = v[1] * v[0];
-      k = h * (x - 2) + y - 2;
+      int x = (int)X[i];
+      int y = (int)Y[i];
+      double u = X[i] - x;
+      double v = Y[i] - y;
+      double u2 = u * u;
+      double v2 = v * v;
+      double u3 = u2 * u;
+      double v3 = v2 * v;
+      int k = h * (x - 2) + y - 2;
+      double b[4];
+      double bv[4]; // db_dv
       for(j = i; j < end; j += num_points, k += step) {
         for (m = 0, n = k; m < 4; m++, n += h) {
-          c[0] = (double)A[n+0];
-          c[1] = (double)A[n+1];
-          c[2] = (double)A[n+2];
-          c[3] = (double)A[n+3];
-          a = (c[3] + c[1]) - (c[2] + c[0]);
-          b[m] = v[2] * a + v[1] * ((c[0] - c[1]) - a) + v[0] * (c[2] - c[0]) + c[1];
+          double c0 = (double)A[n+0];
+          double c1 = (double)A[n+1];
+          double c2 = (double)A[n+2];
+          double c3 = (double)A[n+3];
+          double a = (c3 + c1) - (c2 + c0);
+          b[m] = v3 * a + v2 * ((c0 - c1) - a) + v * (c2 - c0) + c1;
+          if (do_grad)
+            bv[m] =  3*v2*a + 2*v*((c0 - c1) - a) + (c2 - c0);
         }
-        a = (b[3] + b[1]) - (b[2] + b[0]);
-        B[j] = saturate_cast<Out_t, double>(u[2] * a + u[1] * ((b[0] - b[1]) - a) + u[0] * (b[2] - b[0]) + b[1]);
+        double a = (b[3] + b[1]) - (b[2] + b[0]);
+        double av = do_grad ? (bv[3] + bv[1]) - (bv[2] + bv[0]) : 0;
+
+        B[j] = saturate_cast<Out_t, double>
+                (u3 * a + u2 * ((b[0] - b[1]) - a) + u * (b[2] - b[0]) + b[1]);
+        if (do_grad) {
+          B_grad[j] = saturate_cast<Out_t, double>
+                (3*u2 * a + 2*u* ((b[0] - b[1]) - a) + (b[2] - b[0]));
+          B_grad[j+end] = saturate_cast<Out_t, double>
+                (u3 * av + u2 * ((bv[0] - bv[1]) - av) + u * (bv[2] - bv[0]) + bv[1]);
+        }
       }
     } else {
       // Out of bounds
@@ -366,8 +380,6 @@ void interp_cubic(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
         B[j] = oobv;
     }
   }
-  if (B_grad)
-    mexErrMsgTxt("Gradient not implemented for cubic.");
 }
 
 method_t get_method(char const* buffer)

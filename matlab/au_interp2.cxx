@@ -21,7 +21,7 @@ enum method_t {
 method_t get_method(char const* buffer);
 
 template <class T>
-bool try_cast(mlx_inputs& in, mlx_outputs& out);
+bool try_cast_1(mlx_inputs& in, mlx_outputs& out);
   
 template <class T, class Out_t>
 bool try_cast_2(mlx_inputs& in, mlx_outputs& out);
@@ -42,17 +42,17 @@ void mlx_function(mlx_inputs& in, mlx_outputs& out)
   
 //  mexPrintf("omp procs = %d\n", omp_get_num_procs());
 
-  if (!(  try_cast<mlx_logical>(in, out) ||
-          try_cast<mlx_uint8>(in, out) ||
-          try_cast<mlx_uint16>(in, out) ||
-          try_cast<mlx_int16>(in, out) ||
-          try_cast<mlx_single>(in, out) ||
-          try_cast<mlx_double>(in, out)))
+  if (!(  try_cast_1<mlx_logical>(in, out) ||
+          try_cast_1<mlx_uint8>(in, out) ||
+          try_cast_1<mlx_uint16>(in, out) ||
+          try_cast_1<mlx_int16>(in, out) ||
+          try_cast_1<mlx_single>(in, out) ||
+          try_cast_1<mlx_double>(in, out)))
     mexErrMsgTxt("Unhandled input type (first argument)");
 }
 
 template <class T>
-bool try_cast(mlx_inputs& in, mlx_outputs& out)
+bool try_cast_1(mlx_inputs& in, mlx_outputs& out)
 {
   // Check input type, fail silently if no match
   if (!mlx_isa<T>(in[0]))
@@ -226,10 +226,12 @@ void interp_linear(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
     
     if (X[i] < 1 || Y[i] < 1 || X[i] > dw || Y[i] > dh) {
       // Out of bounds
-      for (j = i; j < end; j += num_points)
+      for (j = i; j < end; j += num_points) {
         B[j] = oobv;
-      if (do_grad) {
-        mexErrMsgTxt("TODO: decide gradient here");
+        if (do_grad) {
+          B_grad[j] = oobv;
+          B_grad[j+end] = oobv;
+        }
       }
       continue;
     }
@@ -274,12 +276,12 @@ void interp_linear(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
       int x = (int)X[i];
       double u = X[i] - x;
       k = h * x - 1;
-      for (j = i; j < end; j += num_points, k += step)
+      for (j = i; j < end; j += num_points, k += step) {
         B[j] = saturate_cast<Out_t, double>(A[k] + (A[k+h] - A[k]) * u);
-      if (do_grad) {
-        mexPrintf("X_inside");
-        B_grad[j] = (A[k+h] - A[k]);
-        B_grad[j+end] = 0;
+        if (do_grad) {
+          B_grad[j] = (A[k+h] - A[k]);
+          B_grad[j+end] = 0;
+        }
       }
     }
     else if (Y_inside) {
@@ -289,23 +291,24 @@ void interp_linear(mlx_array<Out_t>& B, mlx_array<Out_t>& B_grad,
       int y = (int)Y[i];
       double v = Y[i] - y;
       k = h * (w - 1) + y - 1;
-      for (j = i; j < end; j += num_points, k += step)
+      for (j = i; j < end; j += num_points, k += step) {
         B[j] = saturate_cast<Out_t, double>(A[k] + (A[k+1] - A[k]) * v);
-      if (do_grad) {
-        mexPrintf("Y_inside");
-        B_grad[j] = 0;
-        B_grad[j+end] = (A[k+1] - A[k]);
-        mexErrMsgTxt("oiks");
+        if (do_grad) {
+          B_grad[j] = 0;
+          B_grad[j+end] = (A[k+1] - A[k]);
+        }
       }
     } else {
       // The X and Y coordinates are on the boundary
       // Avoid reading outside the buffer to avoid crashes
       // Output the last value in the array
       k = h * w - 1;
-      for (j = i; j < end; j += num_points, k += step)
+      for (j = i; j < end; j += num_points, k += step) {
         B[j] = saturate_cast<Out_t, double>(A[k]);
-      if (do_grad) {
-        mexErrMsgTxt("oiks");
+        if (do_grad) {
+          B_grad[j] = 0;
+          B_grad[j+end] = 0;
+        }
       }
     }
   }

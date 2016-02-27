@@ -34,8 +34,11 @@ au_test_end au_interp2
 %% Test grad
 A = randn(2,2,2,3)*3;
 
-Xrange = [1.1 2   1.9 2];
-Yrange = [1.3 1.9   2 2];
+Xrange = [ 1.1 1.1 1.7 1.7 1.0 1.9 ];
+Yrange = [ 1.3 1.7 1.1 1.8 1.9 1.0 ];
+Xrange = Xrange(5);
+Yrange = Yrange(5);
+
 [X,Y] = meshgrid(Xrange, Yrange);
 
 [B, DB] = au_interp2(A, X, Y, 'l');

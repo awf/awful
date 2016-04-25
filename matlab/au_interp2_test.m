@@ -56,17 +56,18 @@ end
 %%
 rand('seed', 2.0)
 Z = uint8(rand(5) * 64);
-R = 2:.003:4; 
+R = 2:.3:4; 
 [xx,yy] = meshgrid(R);
 hold off; 
 image(1:5.5,1:5,Z);
 hold on
-image(R,R,0.5*au_interp2(Z,xx,yy,'c'));
+image(R,R,au_interp2(Z,xx,yy,'l'));
 axis equal
 colormap prism
 
 %%
-N=10;
+disp('** TIMIMGS **');
+N=1000;
 ToNS = N * numel(xx) / 1e9;
 for cast = {@single, @double}
   for func = {@au_interp2, @au_interp2_omp, @vgg_interp2, @interp2, }

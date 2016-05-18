@@ -20,18 +20,21 @@ if nargin == 0
     p = [1 2 3]';
     f(p)
     
-    au_autodiff_generate(f, p, [], 'c:/tmp/au_autodiff_generate_test_mex.cpp');
+    au_test_begin au_autodiff_generate
+    au_autodiff_generate(f, p, [], 'c:/tmp/au_autodiff_generate_test_mex.cpp', 'HESSIAN=1');
  
     % Check it exists and is callable
-    for do_jacobian = [false true]
+    for do_jacobian = [0 1 2]
       out = au_autodiff_generate_test_mex([p p p], zeros(0,3), do_jacobian);
-      out_val = out(1,:)
-      out_jac = out(2:end,:)
+      out_val = out(1,:);
+      out_jac = out(2:end,:);
     end
     
-    au_test_should_fail o=au_autodiff_generate_test_mex(rand(4,1),zeros(0,1),false)
-    au_test_should_fail o=au_autodiff_generate_test_mex(rand(3,1),zeros(2,1),false)
+    au_test_should_fail o=au_autodiff_generate_test_mex(rand(4,1),zeros(0,1),0)
+    au_test_should_fail o=au_autodiff_generate_test_mex(rand(3,1),zeros(2,1),0)
 
+    au_test_end
+    
     return
 end
 
@@ -39,7 +42,7 @@ if nargin < 4
     filename = [];
 end
 
-opts = au_opts('CSE=1;JACOBIAN=1;SIMPLIFY_TMAX=0', varargin{:});
+opts = au_opts('CSE=1;JACOBIAN=1;HESSIAN=0;SIMPLIFY_TMAX=0', varargin{:});
 
 %% Determine sizes etc
 au_assert size(example_arguments,2)==1
@@ -72,11 +75,28 @@ if opts.JACOBIAN
   fprintf(' %.1fsec\n', sum(times));
   fprintf('au_autodiff_generate: transpose ... ');
   tic
-  out = [out_val out_jac].';
+  out_jac = [out_val out_jac];
   fprintf(' %.1fsec\n', toc);
-else
-  out = out_val;
 end
+
+if opts.HESSIAN
+  fprintf('au_autodiff_generate: computing Hessian ... ');
+  times=[];
+  nh=1;
+  for k=numel(in):-1:1
+    tic
+    out_hess(:,nh:nh+k-1) = diff(out_jac(:,1:k), in(k));
+    times(k) = toc;
+    fprintf(' %d [%.1fsec]', k, times(k));
+    nh=nh+k;
+  end
+  fprintf(' %.1fsec\n', sum(times));
+  fprintf('au_autodiff_generate: transpose ... ');
+  tic
+  out_hess = [out_jac out_hess];
+  fprintf(' %.1fsec\n', toc);
+end
+
 
 % awf xxfixme: handle symbolic sparsity find(~(out_all == 0))
 
@@ -89,17 +109,29 @@ for k=1:md
     decls= [decls sprintf('    double data%d = data_ptr[%d];\n', k, k-1)];
 end
 fprintf('au_autodiff_generate: computing ccode for do_jacobian=0\n');
-BodyNoJac = [decls au_ccode(out_val, [], opts.CSE, opts.SIMPLIFY_TMAX)];
+BodyNoJac = [decls au_ccode(out_val.', [], opts.CSE, opts.SIMPLIFY_TMAX)];
 BodyNoJac = strrep(BodyNoJac, '[0 * out_rows + ', '[');
 str = BodyNoJac;
+do_jacobian = 0;
 
 if opts.JACOBIAN
   tic
   fprintf('au_autodiff_generate: computing ccode for do_jacobian=1\n');
-  BodyJacobian = [decls au_ccode(out, [], opts.CSE, opts.SIMPLIFY_TMAX)];
+  BodyJacobian = [decls au_ccode(out_jac.', [], opts.CSE, opts.SIMPLIFY_TMAX)];
   BodyJacobian = strrep(BodyJacobian, '[0 * out_rows + ', '[');
   codegen_time = toc;
   str = BodyJacobian;
+  do_jacobian = 1;
+end
+
+if opts.HESSIAN
+  tic
+  fprintf('au_autodiff_generate: computing ccode for do_jacobian=2\n');
+  BodyHessian = [decls au_ccode(out_hess.', [], opts.CSE, opts.SIMPLIFY_TMAX)];
+  BodyHessian = strrep(BodyHessian, '[0 * out_rows + ', '[');
+  codegen_time = toc;
+  str = BodyHessian;
+  do_jacobian = 2;
 end
 
 if isempty(filename)
@@ -117,13 +149,16 @@ else
     fprintf('au_autodiff_generate: writing file [fd=%d]\n', fd);
 end
 
-body0 = '  /* inner loop do_jac=0 */';
-body0 = sprintf('%s\n%s', body0, BodyNoJac);
+body0 = sprintf('  /* inner loop do_jac=0 */\n%s', BodyNoJac);
 if opts.JACOBIAN
-  body1 = '  /* inner loop do_jac=1 */';
-  body1 = sprintf('%s\n%s', body1, BodyJacobian);
+  body1 = sprintf('  /* inner loop do_jac=1 */\n%s', BodyJacobian);
 else
   body1 = 'mexErrMsgTxt("nojac");';
+end
+if opts.HESSIAN
+  body2 = sprintf('  /* inner loop do_jac=2 */\n%s', BodyHessian);
+else
+  body2 = 'mexErrMsgTxt("nohess");';
 end
 
 % Get Template Text
@@ -140,6 +175,7 @@ template = char(template');
 template = strrep(template, '@VarName', varname);
 template = strrep(template, '@BodyNoJac', body0);
 template = strrep(template, '@BodyJacobian', body1);
+template = strrep(template, '@BodyHessian', body2);
 template = strrep(template, '@InRows', num2str(m));
 template = strrep(template, '@OutDim', num2str(n));
 template = strrep(template, '@DataRows', num2str(md));
@@ -161,17 +197,17 @@ if ischar(filename)
     d = dir(which(fn)); 
     mex_file_age_in_seconds = (now - datenum(d.date))*24*60*60;
     au_test_assert mex_file_age_in_seconds<5
-        
+    
     fprintf('au_autodiff_generate: testing... [%s]\n', fn)
     val_f = function_handle(example_arguments, example_data);
-    val_mex = feval(fn, example_arguments(:), example_data(:), opts.JACOBIAN~=0);
+    val_mex = feval(fn, example_arguments(:), example_data(:), do_jacobian);
     
     val_f = val_f(:)';
     au_test_equal val_f val_mex(1,:) 1e-8
 
     if opts.JACOBIAN
-      J = val_mex(2:end,:)';
-      f_dc = @(x) feval(fn, x, example_data(:), false)';
+      J = val_mex(2:(1+m),:)';
+      f_dc = @(x) feval(fn, x, example_data(:), 0)';
       timeout = max(2, codegen_time/10);
       au_check_derivatives(f_dc, example_arguments(:), J, 'delta=1e-5;tol=1e-3', 'timeout', timeout);
     end

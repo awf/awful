@@ -12,39 +12,49 @@ void mlx_function(mlx_inputs& ins, mlx_outputs& outs)
 {
     mlx_array<mlx_double> in(ins[0]);
     mlx_array<mlx_double> data(ins[1]);
-    mlx_array<mlx_logical> jacobian(ins[2]);
-    bool do_jacobian = jacobian[0];
+    mlx_scalar<mlx_double> do_jacobian_a(ins[2]);
+    int do_jacobian = (int)do_jacobian_a[0];
 
     mlx_assert(in.cols == data.cols);
     mlx_assert(in.rows == @InRows);
     mlx_assert(data.rows == @DataRows);
+    mlx_assert(do_jacobian == 0 || do_jacobian == 1 || do_jacobian == 2);
 
-    mwSize out_rows = 1 + (do_jacobian ? @InRows : 0);
+    mwSize out_rows = 1;
+    if (do_jacobian >= 1) out_rows += in.rows;
+    if (do_jacobian >= 2) out_rows += in.rows * (in.rows+1)/2;
     mwSize out_cols = @OutDim * in.cols;
+
     mlx_make_array<mlx_double> out(out_rows, out_cols);
 
     double const* in_ptr = in.data;
     double const* data_ptr = data.data;
     double* out_ptr = out.data;
 
-    if (do_jacobian) {
-        // const mwSize out_rows = @InRows + 1;
-        const mwSize out_step = (@InRows + 1) * @OutDim;
+    const mwSize out_step = out_rows * @OutDim;
+    if (do_jacobian == 2) {
+        for(mwSize c_in = 0; c_in < in.cols; ++c_in,
+                in_ptr += in.rows,
+                data_ptr += data.rows,
+                out_ptr += out_step) {
+            @BodyHessian
+#line 40 "au_autodiff_generate_template.cpp"
+        }
+    } else if (do_jacobian == 1) {
         for(mwSize c_in = 0; c_in < in.cols; ++c_in,
                 in_ptr += in.rows,
                 data_ptr += data.rows,
                 out_ptr += out_step) {
             @BodyJacobian
-#line 39 "au_autodiff_generate_template.cpp"
+#line 48 "au_autodiff_generate_template.cpp"
         }
     } else {
-        const mwSize out_step = @OutDim;
         for(mwSize c_in = 0; c_in < in.cols; ++c_in,
                 in_ptr += in.rows,
                 data_ptr += data.rows,
                 out_ptr += out_step) {
             @BodyNoJac
-#line 48 "au_autodiff_generate_template.cpp"
+#line 56 "au_autodiff_generate_template.cpp"
         }
     }
     

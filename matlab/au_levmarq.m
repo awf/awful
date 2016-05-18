@@ -1,4 +1,4 @@
-function [x, f, log_data, endmsg] = au_levmarq(x, func, opts)
+function [x, f, log_data, endmsg] = au_levmarq(func, x, opts)
 
 % AU_LEVMARQ    Home-grown LM with line search
 %               [x, J, log, msg] = au_levmarq(x, f, opts)
@@ -25,7 +25,7 @@ if nargin == 0
   return
 end
 
-if nargin == 1 && strcmp(x, 'opts')
+if nargin == 1 && strcmp(func, 'opts')
   opts.MaxIter = Inf;      % Maximum number of outer iterations
   opts.MaxFunEvals = 1e6;  % Maximum numbre of function calls
   opts.TimeOut = Inf;      % Timeout in seconds

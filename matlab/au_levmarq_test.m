@@ -42,24 +42,24 @@ if GX
   opts.IterStartFcn = @(x) plot_fun(x);
 end
 opts.USE_LINMIN = 1;
-au_levmarq(x, f, opts);
+au_levmarq(f, x, opts);
 
 opts.IterStartFcn = [];
 
 opts.Display = 'final+';
-au_levmarq(x, f, opts);
+au_levmarq(f, x, opts);
 
 opts.Display = 'final';
-au_levmarq(x, f, opts);
+au_levmarq(f, x, opts);
 
 opts.Display = 'none';
 tic
 opts.USE_LINMIN = 1;
-au_levmarq(x, f, opts);
+au_levmarq(f, x, opts);
 fprintf('Time with linmin %g sec\n', toc);
 tic
 opts.USE_LINMIN = 0;
-au_levmarq(x, f, opts);
+au_levmarq(f, x, opts);
 fprintf('Time without linmin %g sec (should be much faster as J is tiny)\n', toc);
 
 function x = plot_fun(x)

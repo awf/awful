@@ -480,7 +480,7 @@ classdef au_optimproblem < handle
           
           OP.Info.FunCalls = 0;
           OP.Info.Iters = 0;
-          [pvec, fval, log, endmsg] = au_levmarq(pvec, f, opts);
+          [pvec, fval, log, endmsg] = au_levmarq(f, pvec, opts);
           %
           %terminated = endmsg(1) ~= '>';
           OP.Info.log = [OP.Info.log; -1 -1 -1 -1; log];

@@ -20,14 +20,17 @@ that clashes of function names are avoided.
   AU_ASSERT* Easier assertions  
 !AU_ROSENBROCK
 !AU_RUN_TESTS
-!au_progressbar_ascii
+!AU_PROGRESSBAR_ASCII
 
 *Optimization*
 !AU_OPTIMPROBLEM
 !AU_LEVMARQ
 !AU_RANSAC
+
+*Matrix manipulation and reshaping*
 !AU_DEEP_VECTORIZE
 !AU_DEEP_UNVECTORIZE
+!AU_TRIL_INDICES
 
 *Special functions*
 !AU_RODRIGUES
@@ -40,4 +43,3 @@ that clashes of function names are avoided.
 
 *MEX helper*
 !AU_MEX
-

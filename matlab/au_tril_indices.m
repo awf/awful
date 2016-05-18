@@ -1,5 +1,11 @@
 function inds = au_tril_indices(dim, diagonal)
-% au_tril_indices  Return indices of elements in lower triangle
+% AU_TRIL_INDICES  Return indices of elements in lower triangle
+%             INDS = AU_TRIL_INDICES(DIM [, DIAGONAL])
+%             Argument DIM is the size of the matrix
+%             Argument DIAGONAL is as in TRIL
+%             DIAGONAL = 0 includes the main diagonal
+%             DIAGONAL = -1 excludes the main diagonal
+
 
 if nargin == 0
     %% Test

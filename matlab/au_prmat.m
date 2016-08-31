@@ -2,8 +2,8 @@ function au_prmat(varargin)
 
 % AU_PRMAT   Compact print of matrices.
 %               PR(A,B,C,...);
-%               Displays matrices in a compact 7-chars-per-column
-%               format.   The format uses 'm' notation to save a char
+%               Displays matrices in a compact 7-chars-per-column format.   
+%               The format uses 'm' notation for 'e-' to save a char
 %               for small numbers, so that -2.345e-12 gets more sigfigs:
 %                   |-2.3e-12 -- won't fit (8 chars)
 %                   | -2e-12| -- doesn't use all 7 chars
@@ -12,8 +12,8 @@ function au_prmat(varargin)
 %               Even in 5 chars, get extra sigfigs
 %                   |  -23m7| -- 4 chars
 %               Exact zeros are marked with 'o'
-%               Printing concats horizontally (it's easy
-%               to concat vertically just by repeat calling)
+%               Printing concatenates horizontally (it's easy
+%               to concatenate vertically just by repeat calling)
 
 %               PR(A,B,C,..., ['colwidth', COLWIDTH]);
 %               colwidth!=7 not well tested...
@@ -101,7 +101,7 @@ for i = 1:max(sz(:,1))
                     fprintf(1, [fmt '.1f'], v);
                 elseif abs(v) >= 100
                     fprintf(1, [fmt '.2f'], v);
-                elseif abs(v) > 10
+                elseif abs(v) >= 10-0.0001
                     fprintf(1, [fmt '.3f'], v);
                 elseif abs(v) > 1e-2
                     fprintf(1, [fmt '.4f'], v);

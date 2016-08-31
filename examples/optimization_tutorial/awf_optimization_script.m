@@ -25,7 +25,7 @@ clf
 
 zz = z(xx,yy);
 contour(xx, yy, zz, [min(zz(:))*1.001:.03:4].^4)
-set(findobj(gca, 'type', 'hggroup'), 'linewidth', 2)
+set(findobj(gca, 'type', 'Contour'), 'linewidth', 2)
 xlabel('x')
 ylabel('y')
 colormap(jet)
@@ -211,7 +211,12 @@ reporterr(fhard(xbis)./fhard(x0), n)
 
 %  Compute parabolic fit and minimum at whiteboard...
 
-[xpar, n] = demo_parabolic(fhard, .1, 6.5, xrange);
+[xpar, n] = demo_parabolic(fhard, .1, 6.9, xrange);
+errtext = initerrtext();
+reporterr(fhard(xpar)./fhard(x0), n)
+
+%%
+[xpar, n] = demo_parabolic(fhard, .6, .9, xrange);
 errtext = initerrtext();
 reporterr(fhard(xpar)./fhard(x0), n)
 

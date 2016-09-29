@@ -55,9 +55,9 @@ md = size(example_data,1);
 
 %% Make symbolic variables and push them through.
 in = sym('x', [m 1]);
-sym(in, 'real');
+assume(in, 'real');
 data = sym('data', [md 1]);
-sym(data, 'real');
+assume(data, 'real');
 
 tic
 fprintf('au_autodiff_generate: making code for f:R^%d->R^%d ', m, n);
@@ -75,7 +75,7 @@ if opts.JACOBIAN
   fprintf(' %.1fsec\n', sum(times));
   fprintf('au_autodiff_generate: transpose ... ');
   tic
-  out_jac = [out_val out_jac];
+  out_jac1 = [out_val out_jac];
   fprintf(' %.1fsec\n', toc);
 end
 
@@ -83,17 +83,17 @@ if opts.HESSIAN
   fprintf('au_autodiff_generate: computing Hessian ... ');
   times=[];
   nh=1;
-  for k=numel(in):-1:1
+  for k=1:m
     tic
-    out_hess(:,nh:nh+k-1) = diff(out_jac(:,1:k), in(k));
+    out_hess(:,nh:nh+m-k) = diff(out_jac(:,k:m), in(k));
     times(k) = toc;
     fprintf(' %d [%.1fsec]', k, times(k));
-    nh=nh+k;
+    nh=nh+m-k+1;
   end
   fprintf(' %.1fsec\n', sum(times));
   fprintf('au_autodiff_generate: transpose ... ');
   tic
-  out_hess = [out_jac out_hess];
+  out_hess1 = [out_jac1 out_hess];
   fprintf(' %.1fsec\n', toc);
 end
 
@@ -117,7 +117,7 @@ do_jacobian = 0;
 if opts.JACOBIAN
   tic
   fprintf('au_autodiff_generate: computing ccode for do_jacobian=1\n');
-  BodyJacobian = [decls au_ccode(out_jac.', [], opts.CSE, opts.SIMPLIFY_TMAX)];
+  BodyJacobian = [decls au_ccode(out_jac1.', [], opts.CSE, opts.SIMPLIFY_TMAX)];
   BodyJacobian = strrep(BodyJacobian, '[0 * out_rows + ', '[');
   codegen_time = toc;
   str = BodyJacobian;
@@ -127,7 +127,7 @@ end
 if opts.HESSIAN
   tic
   fprintf('au_autodiff_generate: computing ccode for do_jacobian=2\n');
-  BodyHessian = [decls au_ccode(out_hess.', [], opts.CSE, opts.SIMPLIFY_TMAX)];
+  BodyHessian = [decls au_ccode(out_hess1.', [], opts.CSE, opts.SIMPLIFY_TMAX)];
   BodyHessian = strrep(BodyHessian, '[0 * out_rows + ', '[');
   codegen_time = toc;
   str = BodyHessian;

@@ -1,3 +1,4 @@
+//#define AU_MEX_UNCHECKED /* define this to go fast */
 #include "au_mex.h"
 
 // Declare mlx_function (C++ version of mexFunction)

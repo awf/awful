@@ -1,4 +1,4 @@
-function J = au_jacobian_fd(f,x,JacobPattern,delta)
+function [J, group] = au_jacobian_fd(f,x,JacobPattern,delta)
 % AU_JACOBIAN_FD Finite-difference jacobian
 %     J = AU_JACOBIAN_FD(f,x, opts)
 %     With opts an au_opts structure defaulting to

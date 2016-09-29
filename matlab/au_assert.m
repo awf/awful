@@ -19,7 +19,9 @@ if nargin == 3
     error
   end
 else
-  au_assert_equal nargin 1
+  if nargin ~= 1
+    warning('nargin = %d', nargin)
+  end
   expr = varargin{1};
 end
 

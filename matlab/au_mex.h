@@ -363,13 +363,14 @@ struct mlx_string {
 // 
 template <class T>
 struct mlx_scalar : public mlx_array<T> {
-  typedef typename mlx_array<T> base_t;
+  typedef class mlx_array<T> base_t;
   
   mlx_scalar(mxArray const* p, bool throw_on_type_mismatch = true): 
     base_t(p, throw_on_type_mismatch)
   {
-      if (ok)
-        mlx_assert(numel() == 1);
+    if (this->ok) {
+        mlx_assert(this->numel() == 1);
+    }
   }
   
   // This will interfere with operator bool()

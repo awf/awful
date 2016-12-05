@@ -37,7 +37,8 @@ void mlx_function(mlx_inputs& in, mlx_outputs& out)
   au_visit_elements(a, &visitor);
   
   mlx_make_array<double> sum(mwSize(visitor.count),1); // Make output array
-  au_visit_elements(a, &FillingVisitor(sum.data));
+  FillingVisitor fv(sum.data);
+  au_visit_elements(a, &fv);
   
   out[0] = sum; // Assign to output
 }

@@ -326,7 +326,7 @@ private:
     void create(mlx_dims const& size_)
     {
         this->size = size_;
-        int *odims = (int *)mxMalloc(sizeof(int)*this->size.n);
+        mwSize *odims = (mwSize *)mxMalloc(sizeof(mwSize)*this->size.n);
         this->numel_ = 1;
 	for(int i=0; i<this->size.n; i++) {
             odims[i] = this->size.dims[i];

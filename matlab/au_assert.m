@@ -19,7 +19,7 @@ if nargin == 3
     error
   end
 else
-  au_assert_equal nargin 1
+  au_assert_equal(nargin, 1) % R2016b on Mac gives wrong value for nargin using evalin in called function
   expr = varargin{1};
 end
 

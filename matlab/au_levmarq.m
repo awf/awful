@@ -60,6 +60,7 @@ if nargin == 1 && strcmp(func, 'opts')
   opts.LAMBDA_DECREASE = 2;
   opts.LAMBDA_MAX = 1e10;
   opts.LAMBDA_INCREASE_BASE = 10;
+  opts.LAMBDA_INIT = 1e-4;
   
   opts.TolFun = 1e-8;
   
@@ -119,7 +120,7 @@ end
 
 
 %% Begin the optimization
-lm_lambda = 1e-6;
+lm_lambda = opts.LAMBDA_INIT;
 opts.LAMBDA_INCREASE = opts.LAMBDA_INCREASE_BASE;
 log_data = [];
 funevals = 0;
@@ -351,6 +352,8 @@ while true
   % Record new x, and loop
   x = x_test;
 end
+
+log_data = [log_data; lm_lambda f_disp -1 funevals];
 
 if (VERBOSE >= 1) && (VERBOSE < 3)
   if VERBOSE >= 1.5 && VERBOSE <= 2, fprintf('STOP\n'); end

@@ -40,7 +40,13 @@ classdef au_optimproblem < handle
   %       ParamsToVary, e.g.
   %         OP.ParamsToVary = {OP.Inds.Frame(:).Pose, OP.Inds.Cam1.Focal};
   %
-  %       OP.TolX, OP.TolFun, OP.Display, OP.MaxFunEvals, OP.DiffChange
+  %       OP.TolX, 
+  %       OP.TolFun, 
+  %       OP.Display, 
+  %       OP.MaxFunEvals, 
+  %       OP.MaxIter,
+  %       OP.DiffChange
+  %       OP.InitialLambda
   %          Options like lsqnonlin's
   %       OP.Optimizer
   %          Choose from 'au', 'lsqn_lm', 'lsqn_tr'
@@ -69,12 +75,14 @@ classdef au_optimproblem < handle
     TolFun = 1e-8
     TimeOut = 3600 % 1 Hour
     MaxFunEvals = Inf
+    MaxIter = Inf
     SaveFile = [] % Save current best optimization parameters in case of error/ctrl+C
     Optimizer = 'au'; % au, lsqn_tr, lsqn_lm
     DiffChange = 1e-6;
     UseLineSearch = false;  % Mostly using finite-diff Jacobians, so linmin should be worth it
     DisplayErr = @(e) sum(e.^2); % How to display the error as a scalar
     ResidualsScale = 1
+    InitialLambda = 1e-4
     
     % Progress functions
     OutputFcn = @(OP) []; % Is passed the optimproblem struct.
@@ -292,7 +300,7 @@ classdef au_optimproblem < handle
     end
     
     %% Reset residuals accumulators for a new objective calculation
-    function ClearResiduals(OP)
+    function out=ClearResiduals(OP)
       % Maintain size of array so that we don't pay to grow it every time
       if (size(OP.Residuals,1) ~= OP.nResiduals)
         OP.Residuals = zeros(OP.nResiduals,1);
@@ -300,11 +308,12 @@ classdef au_optimproblem < handle
       OP.Residuals_index = 0;
       OP.last_residuals_size = [];
       OP.JacobPattern_ij = {};
+      out=[]; % To allow composition of these in [...] for lambdas
     end
     
     %% Add a block of residuals to the current objective calculation
     % Optional argument USED_PARAMS calls AddResidualBlockInfo (see below).
-    function AddResidualBlock(OP, residuals, used_params)
+    function out=AddResidualBlock(OP, residuals, used_params)
       % If we ever want to parallelize this, we'll need to get callers to
       % supply a block ID, because they need to be added in a consistent
       % order for each iteration.
@@ -320,6 +329,7 @@ classdef au_optimproblem < handle
       if OP.WantBlockInfo && nargin > 2 % ordered for speed
         OP.AddResidualBlockInfo(used_params);
       end
+      out=[]; % To allow composition of these in [...] for lambdas
     end
     
     %% Say which parameters were used to compute a block of residuals.
@@ -330,7 +340,7 @@ classdef au_optimproblem < handle
     % If you don't supply this, or are unrefined, the outcome will be
     % increased time to ComputeJacobPattern.  Depending on how often you
     % need to do that, it may or may not be worth your while.
-    function AddResidualBlockInfo(OP, used_params)
+    function out=AddResidualBlockInfo(OP, used_params)
       n = OP.last_residuals_size;
       JP_rows = int32(OP.Residuals_index - n + (1:n)');
       JP_cols = au_deep_vectorize(used_params);
@@ -339,6 +349,7 @@ classdef au_optimproblem < handle
       end
       [ii,jj] = meshgrid(JP_rows, JP_cols);
       OP.JacobPattern_ij{end+1} = [ii(:) jj(:)];
+      out=[]; % To allow composition of these in [...] for lambdas
     end
     
     %% Run optimization
@@ -394,6 +405,7 @@ classdef au_optimproblem < handle
           opts = optimset('lsqnonlin');
           opts.Display = 'none';
           opts.MaxFunEvals = min(OP.MaxFunEvals, 1e6);
+          opts.MaxIter = OP.MaxIter;
           opts.TolFun = OP.TolFun;
           opts.TolX = OP.TolX;
           opts.OutputFcn = @(x,opt,state) OP.OutputFcn_lsqnonlin(x, opt, state);
@@ -441,7 +453,7 @@ classdef au_optimproblem < handle
         case 'au'
           %% Call au_levmarq
           opts = au_levmarq('opts');
-          opts.MaxIter = Inf;      % Maximum number of outer iterations
+          opts.MaxIter = OP.MaxIter;      % Maximum number of outer iterations
           opts.MaxFunEvals = OP.MaxFunEvals;  % Maximum numbre of function calls
           opts.TimeOut = OP.TimeOut;      % Timeout in seconds
           opts.Display = OP.Display;   % Verbosity: none, final, final+, iter
@@ -474,6 +486,7 @@ classdef au_optimproblem < handle
           opts.LAMBDA_MIN = 1e-12;
           opts.LAMBDA_DECREASE = 2;
           opts.LAMBDA_MAX = 1e8;
+          opts.LAMBDA_INIT = OP.InitialLambda;
           opts.LAMBDA_INCREASE_BASE = 10;
           
           opts.TolFun = OP.TolFun;
@@ -621,6 +634,7 @@ classdef au_optimproblem < handle
         p('TolFun');
         p('TimeOut'); % 1 Hour
         p('MaxFunEvals');
+        p('MaxIter');
         p('SaveFile'); % Save current best optimization parameters in case of error/ctrl+C
         p('Optimizer'); % au, lsqn_tr, lsqn_lm
         p('DiffChange');

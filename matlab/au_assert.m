@@ -19,9 +19,7 @@ if nargin == 3
     error
   end
 else
-  if nargin ~= 1
-    warning('nargin = %d', nargin)
-  end
+  au_assert_equal(nargin, 1) % R2016b on Mac gives wrong value for nargin using evalin in called function
   expr = varargin{1};
 end
 

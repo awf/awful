@@ -65,14 +65,11 @@ out_val = function_handle(in, data);
 fprintf(' [%.1fsec]\n', toc);
 if opts.JACOBIAN
   fprintf('au_autodiff_generate: computing jacobian ... ');
-  times=[];
+  au_progressbar_ascii('J', 0);
   for k=numel(in):-1:1
-    tic
     out_jac(:,k) = diff(out_val, in(k));
-    times(k) = toc;
-    fprintf(' %d [%.1fsec]', k, times(k));
+    au_progressbar_ascii('J', (numel(in)-k+1)/numel(in));
   end
-  fprintf(' %.1fsec\n', sum(times));
   fprintf('au_autodiff_generate: transpose ... ');
   tic
   out_jac1 = [out_val out_jac];

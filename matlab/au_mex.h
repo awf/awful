@@ -326,7 +326,7 @@ private:
     void create(mlx_dims const& size_)
     {
         this->size = size_;
-        int *odims = (int *)mxMalloc(sizeof(int)*this->size.n);
+        mwSize *odims = (mwSize *)mxMalloc(sizeof(mwSize)*this->size.n);
         this->numel_ = 1;
 	for(int i=0; i<this->size.n; i++) {
             odims[i] = this->size.dims[i];
@@ -363,13 +363,14 @@ struct mlx_string {
 // 
 template <class T>
 struct mlx_scalar : public mlx_array<T> {
-  typedef typename mlx_array<T> base_t;
+  typedef class mlx_array<T> base_t;
   
   mlx_scalar(mxArray const* p, bool throw_on_type_mismatch = true): 
     base_t(p, throw_on_type_mismatch)
   {
-      if (ok)
-        mlx_assert(numel() == 1);
+    if (this->ok) {
+        mlx_assert(this->numel() == 1);
+    }
   }
   
   // This will interfere with operator bool()

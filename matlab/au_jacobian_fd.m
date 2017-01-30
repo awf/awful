@@ -85,7 +85,12 @@ else
     finDiffOpts.DiffMaxChange = delta;
     
     fx = f(x);
-    J = sfdnls(x,fx(:),JacobPattern,group,[],f,-inf+x, inf+x, ...
+    if verLessThan('matlab', 'R2015a')
+      funfcn = f;
+    else
+      funfcn = {[],[],f};
+    end
+    J = sfdnls(x,fx(:),JacobPattern,group,[],funfcn,-inf+x, inf+x, ...
       finDiffOpts,[],[]);
   end
 end

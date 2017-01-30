@@ -100,7 +100,7 @@ end
 %% Now we have a live progressbar, possibly newly created
 %% stored in info, and in au_progressbar_ascii_data.(tag)
 a1 = varargin{1};
-if ~isstr(a1)
+if ~ischar(a1)
   % Normal case: It's a number, make progress.
   proportion = a1;
   
@@ -138,7 +138,7 @@ if ~isstr(a1)
     
     t_elapsed = etime(clock, info.timer);
     t_remaining = t_elapsed/proportion - t_elapsed;
-    if (proportion > 0.01) | (t_elapsed > 30)
+    if (proportion > 0.01) || (t_elapsed > 30)
       eta = datenum(info.timer) + (t_elapsed/proportion)/(24*3600);
       eta_s = datestr(eta, 0);
     else

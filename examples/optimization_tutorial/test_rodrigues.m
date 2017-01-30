@@ -4,9 +4,9 @@ vec = @(x) x(:);
 X = rand(3, 20);
 axis_gt = orth(randn(3,1));
 angle_gts = [0:45:315 352:2:368 405];
-angle_gts = [85:95];
+%angle_gts = [85:95];
 for REBASE = 0:1
-  for QUAT = [true ]
+  for QUAT = [true false]
     if QUAT
       p2rot = @(x) quat2mat(x/norm(x));
       w0 = zeros(4,1);
@@ -88,6 +88,13 @@ for REBASE = 0:1
   end
 end
 
+
+%%
+clf
+boxplot(AllQ', angle_gts)
+title('Quat');
+drawnow
+
 %%
 p = @(x,y,varargin) errorbar(x, mean(y), std(y), varargin{:});
 hold off
@@ -100,9 +107,26 @@ legend(h, 'Location', 'nw')
 xlabel('Ground truth rotation angle')
 ylabel('Mean #iterations')
 set(gca, 'xtick', 0:45:360+45)
+set(gca, 'ylim', [0 70])
 return
 
 %%
+p = @(x,y,varargin) plot(x, mean(y), varargin{:});
+hold off
+h(1)=p(angle_gts, AllE','r.-', 'DisplayName', 'Exp');
+hold on
+h(2)=p(angle_gts, AllQ','k.-', 'DisplayName', 'Quat');
+h(4)=p(angle_gts, AllQRebase','b.-', 'DisplayName', 'QuatRebase');
+h(3)=p(angle_gts, AllERebase','m.-', 'DisplayName', 'ExpRebase');
+legend(h, 'Location', 'nw')
+xlabel('Ground truth rotation angle')
+ylabel('Mean #iterations')
+set(gca, 'xtick', 0:45:360+45)
+set(gca, 'ylim', [0 70])
+return
+
+%%
+h=[]
 hold off
 h(1)=errorbar(angle_gts, mean(AllE'), std(AllE')/4,'r', 'DisplayName', 'Exp');
 hold on
@@ -110,3 +134,4 @@ h(2)=errorbar(angle_gts, mean(AllQ'), std(AllQ')/4,'k', 'DisplayName', 'Quat');
 legend(h, 'Location', 'nw')
 xlabel('Ground truth rotation angle')
 ylabel('Mean #iterations')
+set(gca, 'ylim', [0 70])

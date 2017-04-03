@@ -14,5 +14,5 @@ au_ccode_test
 
 au_levmarq_test
 
+cd(au_root_dir)
 au_mex_test
-

@@ -198,7 +198,7 @@ classdef au_optimproblem < handle
     % to call it if Params changes, or if the number of residuals changes.
     function J_full = ComputeJacobPattern(OP, DEBUG)
       if nargin < 2
-        DEBUG = 1;
+        DEBUG = 0;
       end
       
       if DEBUG

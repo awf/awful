@@ -1,7 +1,7 @@
 
-AWFUL - The AWF Utilities Library
+AWFUL - The AWF Utilities Library - Est. 2014
 
-Author: Andrew W Fitzgibbon, awf at microsoft.com
+Author: Andrew Fitzgibbon, awf@fitzgibbon.ie
 
 Primarily Matlab, with some .NET bits in AuDotNet
 
